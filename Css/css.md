@@ -28,16 +28,17 @@ box-sizing: border-box;
 
 1. BFC可以看作一个独立的容器，容器内部元素不会影响区块外部元素。
 2. BFC里面的元素从左到右，从上到下依次排序。
-3. 同一个BFC，相邻的元素`margin`会发生重叠。
-4. BFC里面如果有`float`元素，也可以撑开，避免高度坍塌。
+3. 同一个BFC，相邻的元素`margin`会发生重叠。（将内部元素也创建BFC）
+4. BFC里面如果有`float`元素，也可以撑开，避免高度坍塌。（处理浮动问题）
+5. 每个元素的左外边距与包含块的左边界相接触，即使浮动元素也一样
 
 ### 创建BFC
 
-1. float属性部位none。
-2. position属性值为absolute或者fixed。
-3. display为 inline-block，flow-root，table-cell，table-caption以及table相关属性。
-4. overflow属性值部位visible。
-5. display属性为flex，grid，inline-flex，inline-grid。
+1. 根元素
+2. float属性部位none。
+3. position属性值为absolute或者fixed。
+4. display为 inline-block，flow-root，table-cell，table-caption以及table相关属性。
+5. overflow属性值部位visible。
 
 ## visibility: hidden 和 display: none 和 opacity: 0 有什么区别
 
@@ -63,12 +64,12 @@ div, p, h1-h6, ul, li, form, table
 ### 行内元素
 
 占据一行的一小部分，多个行内元素水平排版，无法设置宽高
-span, img, a
+span, img（可设置宽高，是可替换元素）, a
 
 ### 行内块级元素
 
 根行内元素类似，不过可以设置宽高
-button, img, input, select, label, textarea
+button, input, select, label, textarea
 
 ## 可替换元素
 

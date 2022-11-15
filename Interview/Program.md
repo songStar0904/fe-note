@@ -81,7 +81,7 @@ limitLoad(urls, request, 3).then(res => {
 })
 ```
 
-### 数组转树结构
+### 数组转树结构 并设计添加删除修改查找节点
 
 ```js
 const arr = [{
@@ -149,7 +149,7 @@ function arr2Tree(arr) {
   return res;
 }
 function arr2Tree(arr) {
-  // 每个lopp是获取当前pid的children
+  // 每个loop是获取当前pid的children
   const loop = (pid) => {
     return arr.reduce((pre, cur) => {
       if (cur.parentId === pid) {
@@ -162,6 +162,102 @@ function arr2Tree(arr) {
   return loop(0)
 }
 arr2Tree(arr)
+function tree2Arr(tree) {
+  let res = []
+  function dfs(tree) {
+    for (let node of tree) {
+      const { children = [], ...item } = node
+      res.push(item)
+      dfs(children)
+    }
+  }
+  dfs(tree)
+  return res
+}
+tree2Arr(arr2Tree(arr))
+function appendNodeInTree(id, nNode, tree) {
+  for (let node of tree) {
+    if (node.id === id) {
+      node.children ? node.children.push(nNode) : node.children = [nNode]
+    }
+    if (node.children) {
+      appendNodeInTree(id, nNode, node.children)
+    }
+  }
+  return tree
+}
+appendNodeInTree(1, {id: 8}, arr2Tree(arr))
+function updateNodeInTree(id, nNode, tree) {
+  if (!tree) return tree
+  return tree.map(node => {
+    if (node.id === id) {
+      return {
+        ...node,
+        ...nNode
+      }
+    } else {
+      return {
+        ...node,
+        children: updateNodeInTree(id, nNode, node.children)
+      }
+    }
+  })
+}
+function updateNodeInTree(id, nNode, tree) {
+  if (!tree) return tree
+  const n = tree.length
+  for (let i = 0; i < n; i++) {
+    if (tree[i].id === id) {
+      tree[i] = {
+        ...tree[i],
+        ...nNode
+      }
+      break;
+    }
+    tree[i].children && updateNodeInTree(id, nNode, tree[i].children)
+  }
+  return tree
+}
+updateNodeInTree(1, {name: 'new1'}, arr2Tree(arr))
+
+function deleteNodeInTree(id, tree) {
+  if (!tree) return tree
+  const n = tree.length
+  for (let i = 0; i < n; i++) {
+    if (tree[i].id === id) {
+      tree.splice(i, 1)
+      break
+    } 
+    tree[i].children && deleteNodeInTree(id, tree[i].children)
+  }
+  return tree
+}
+function deleteNodeInTree(id, tree) {
+  if (!tree) return tree
+  return tree.filter(node => node.id !== id).map(node => ({
+    ...node,
+    children: deleteNodeInTree(id, node.children)
+  }))
+}
+deleteNodeInTree(1, arr2Tree(arr))
+
+function findNodeInTree(id, tree) {
+  let res = null
+  if (!tree) return null
+  for (let node of tree) {
+    if (node.id === id) {
+      res = node
+      break
+    }
+    const find = findNodeInTree(id, node.children)
+    if (find) {
+      res = find
+      break
+    }
+  }
+  return res
+}
+findNodeInTree(1, arr2Tree(arr))
 ```
 
 ### 去除字符串中出现次数最少的字符，不改变源字符串顺序
@@ -291,6 +387,38 @@ function fullSequeue(nums) {
 fullSequeue([1,2,3])
 ```
 
+### ES5 ES6 继承
+```js
+class Parent {
+  constructor(name) {
+    this.name = name
+  }
+}
+
+class Child extends Parent {
+  constructor(pName, cName) {
+    super(pName)
+    this.cname = cName
+  }
+}
+
+const child = new Child('child')
+
+function Parent (name) {
+  this.name = name
+}
+
+function Child (pName, cName) {
+  this.cname = cName
+  Parent.call(this, pName)
+}
+
+Child.prototype = Object.create(Parent.prototype)
+Child.prototype.constructor = Child
+
+child = new Child('child')
+```
+
 ### 两个字符串对比, 得出结论都做了什么操作, 比如插入或者删除
 ```js
 pre = 'abcde123'
@@ -298,6 +426,8 @@ now = '1abc123'
 
 // a前面插入了1, c后面删除了de
 function diff(pre, now) {
+  pre = pre.split('')
+  now = now.split('')
   let preStartIdx = 0, nowStartIdx = 0, preEndIdx = pre.length - 1, nowEndIdx = now.length - 1
   while(preStartIdx <= preEndIdx && nowStartIdx <= nowEndIdx) {
     if (pre[preStartIdx] === now[nowStartIdx]) {
@@ -318,6 +448,7 @@ function diff(pre, now) {
       if (idxInPre === -1) {
         console.log(pre[preStartIdx] + '前面插入了' + now[nowStartIdx])
       } else {
+        console.log(`将${pre[idxInPre]}从${idxInPre}移动到${pre[preStartIdx]}前`)
         pre[idxInPre] = undefined
       }
       nowStartIdx++
@@ -488,10 +619,11 @@ function findUnique(str) {
       uniStack.add(s)
     }
   }
-  return [...uniStack].length > 0 ? [...uniStack][0] : -1
+  return uniSet.size > 0 ? uniSet.keys().next().value : -1
 }
 findUnique('ababcbdsa')
 findUnique('abcdefg')
+findUnique('loveleetcode')
 ```
 
 ### 遇到退格字符就删除前面的字符, 遇到两个退格就删除两个字符
@@ -543,17 +675,17 @@ fn('helloWorld'); // 每4秒输出一次helloWorld, 输出3次
 
 ### 删除链表的一个节点
 ```js
-function deleteNode(head, node) {
-  if (head.val === node) return head.next
-  let tem = head
+function deleteNode(head, val) {
+  let res = new ListNode(0, head)
+  let tem = res
   while(tem.next) {
-    if (tem.next.val === node) {
+    if (tem.next.val === val) {
       tem.next = tem.next.next
-      return head
-    } 
+      continue
+    }
     tem = tem.next
   }
-  return head
+  return res.next
 }
 ```
 
@@ -616,7 +748,7 @@ function deepClone(target, hash = new weakMap()) {
   hash.set(target, cloneTarget)
   for (let key of Reflect.ownKeys(target)) {
     const value = target[key]
-    cloneTarget[key] typeof value === 'object' ? deepClone(value, hash) : value
+    cloneTarget[key] = typeof value === 'object' ? deepClone(value, hash) : value
   }
   return cloneTarget
 }
@@ -851,6 +983,21 @@ function render(vnode) {
 render(vnode)
 ```
 
+### 有序数组原地去重
+```js
+function uniArr(arr) {
+  const n = arr.length
+  let j = 1
+  for (let i = 1; i < n; i++) {
+    if (arr[i] !== arr[i - 1]) {
+      arr[j++] = arr[i]
+    }
+  }
+  return arr.slice(0, j)
+}
+uniArr([1,1,1,2,3,3,4,5,5])
+```
+
 ### 二叉树层序遍历, 每层的节点放到一个数组里
 ```js
 // 给定一个二叉树，返回该二叉树层序遍历的结果，（从左到右，一层一层地遍历）
@@ -1021,4 +1168,202 @@ addTask(2, 500)
 addTask(3, 300)
 addTask(4, 400)
 // 2314
+```
+
+### 数字转N进制
+
+```js
+function solve(m, n) {
+  let res = ''
+  while(m) {
+    res = m % n + res
+    m = Math.floor(m / n)
+  }
+  return Number(res)
+}
+solve(7, 2) // 111
+solve(7,3) // 21
+```
+
+### 实现(5).add(3).minus(2)
+```js
+Number.prototype.add = function(n) {
+  const n1 = this
+  return n1 + n
+}
+Number.prototype.minus = function(n) {
+  const n1 = this
+  return n1 - n
+}
+(5).add(3).minus(2)
+```
+
+```js
+class LazyManClass {
+  name = ''
+  taskList = []
+  constructor(name) {
+    this.sayHi(name)
+    this.taskList = []
+    setTimeout(() => {
+      this.next()
+    })
+  }
+  sayHi(name) {
+    console.log(`Hi I am ${name}`)
+    return this
+  }
+  eat(food) {
+    const fn = () => {
+        console.log(`I am eating ${food}`)
+        this.next()
+      }
+    this.taskList.push(fn)
+    return this
+  }
+  sleepFirst(time) {
+    const fn = () => {
+      setTimeout(() => {
+        console.log(`等待了${time}秒...`)
+        this.next()
+      }, time * 1000)
+    }
+    this.taskList.unshift(fn)
+    return this
+  }
+  sleep(time) {
+    const fn = () => {
+      setTimeout(() => {
+        console.log(`等待了${time}秒...`)
+        this.next()
+      }, time * 1000)
+    }
+    this.taskList.push(fn)
+    return this
+  }
+  next() {
+    const fn = this.taskList.shift()
+    fn && fn()
+  }
+}
+const LazyMan = (name) => new LazyManClass(name)
+LazyMan('Tony');
+// Hi I am Tony
+
+LazyMan('Tony').sleep(10).eat('lunch');
+// Hi I am Tony
+// 等待了10秒...
+// I am eating lunch
+
+LazyMan('Tony').eat('lunch').sleep(3).eat('dinner');
+// Hi I am Tony
+// I am eating lunch
+// 等待了3秒...
+// I am eating diner
+
+LazyMan('Tony').eat('lunch').eat('dinner').sleepFirst(3).sleep(2).eat('junk food');
+// Hi I am Tony
+// 等待了3秒...
+// I am eating lunch
+// I am eating dinner
+// 等待了2秒...
+// I am eating junk food
+```
+
+### 数组编程题
+随机生成一个长度为 10 的整数类型的数组，例如 [2, 10, 3, 4, 5, 11, 10, 11, 20]，将其排列成一个新数组，要求新数组形式如下，例如 [[2, 3, 4, 5], [10, 11], [20]]。
+```js
+function arrFn(arr) {
+  const map = {}
+  for (let num of arr) {
+    const n = Math.floor(num / 10)
+    if (!map[n]) map[n] = new Set()
+    map[n].add(num)
+  }
+  return Object.keys(map).sort((a, b) => a - b).map(key => [...map[key]])
+}
+arrFn([2, 10, 3, 4, 5, 11, 10, 11, 20])
+```
+
+### 如何把一个字符串的大小写取反（大写变小写小写变大写），例如 'AbC' 变成 'aBc' 。
+```js
+function changeStr(str) {
+  let res = ''
+  for (let s of str) {
+    if (/[a-z]/.test(s)) {
+      s = s.toLocaleUpperCase()
+    } else if (/[A-Z]/.test(s)) {
+      s = s.toLocaleLowerCase()
+    }
+    res += s
+  }
+  return res
+}
+changeStr('AbC')
+```
+### 实现一个 normalize 函数，能将输入的特定的字符串转化为特定的结构化数据
+
+字符串仅由小写字母和 [] 组成，且字符串不会包含多余的空格。
+示例一: 'abc' --> {value: 'abc'}
+示例二：'[abc[bcd[def]]]' --> {value: 'abc', children: {value: 'bcd', children: {value: 'def'}}}
+
+```js
+function normalize(str) {
+  let arr = str.split(/[\[\]]/g).filter(Boolean)
+  let res = {}
+  let cur
+  for (let i in arr) {
+    const value = arr[i]
+    if (i != 0) {
+      cur.children = {}
+      cur.children.value = value
+      cur = cur.children
+    } else {
+      res.value = value
+      cur = res
+    }
+    
+  }
+  return res
+}
+normalize('abc')
+normalize('[abc[bcd[def]]]')
+```
+
+### 实现finally
+```js
+Promise.prototype.myFinally = function (cb) {
+  return this.then(value => Promise.resolve(cb()).then(() => value)).catch((reason) => Promise.resolve(cb()).then(() => { throw reason }))
+}
+
+Promise.myAll = function (promises) {
+  const results = []
+  if (!Array.isArray(promises)) return
+  const n = promises.length
+  return new Promise((resovle, reject) => {
+    for (let i = 0; i < n; i++) {
+      promises[i].then(res => {
+        results[i] = res
+        if (results.length === n) {
+          resovle(results)
+        }
+      }).catch(err => {
+        reject(err)
+      })
+    }
+  })
+}
+Promise.myRace = function (promises) {
+  if (!Array.isArray(promises)) return
+  const n = promises.length
+  return new Promise((resolve, reject) => {
+    for (let i = 0; i < n; i++) {
+      promises[i].then(res => {
+        resolve(res)
+      }).catch(err => {
+        reject(err)
+      })
+    }
+  })
+}
 ```

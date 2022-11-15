@@ -219,6 +219,12 @@ template在el挂载后会通过parse解析成render函数，render接受createEl
 3. store.getState：返回当前state
 这是一个发布订阅模式
 
+#### 为什么 Vuex 的 mutation 和 Redux 的 reducer 中不能做异步操作？
+为了保证状态可预测：
+- 单一数据源state
+- state只读，没有暴露直接修改state接口，只能通过dispatch(action)来修改
+- reducer必须是纯函数，没有副作用才能保证state可预测
+
 ### useRef / ref / forwardRef 的区别是什么?
 - useRef 返回一个可变的ref对象，其.current属性被初始化为传入参数，更变current不会引起组件重新渲染，无论在生命周期任何节点使用current始终返回最新的值。（useRef存的是个引用地址，所以current的更新不会引起组件更新，且获取始终最新值）通常和ref一起使用。
 - useImperativeHandle 可以让你在使用ref时自定义暴露父组件实例，通常和forwardRef一起使用
@@ -289,3 +295,15 @@ createElement 会根据传入的节点信息进行判断
 - 文本节点，type是Text标识
 - 函数组件，type是函数本身
 - 类组件， type是类构造函数
+
+### Vue 如何对数组进行响应式的
+- 重写改变原数组的7个方法（push pop unshift shift sort splice reverse）
+- 对有新增元素的方法的新增值进行依赖收集（push unshift splice）
+- 手动调用notify，触发订阅通知
+
+### nextTick原理
+响应式数据更新后，会触发dep.notify，通知dep中手机的watcher去执行update方法。 将对应所有watcher放入一个watcher队列中（这里会做去重和排序处理）。
+然后通过nextTick方法将刷新watcher队列的方法（flushSchedulerQueue）放入一个全局callbacks数组中（包含用户nextick回调函数）
+如果此时浏览器异步任务队列没有flushCallbacks函数在执行，则执行timerFunc函数，将flushCallbacks函数放入异步队列中（异步队列方法会降级处理promise mutationobserver setImmidiate setTimeout）。如果异步队列中存在flushCallbacks函数，等待其执行完成后再放入下一个flushCallbacks函数
+- flushCallbacks：执行当前所有callbacks数组中的flushSchedulerQueue函数
+- flushSchedulerQueue：负责刷新watcher队列，执行queue数组中美国和watcher.run，从而进行更新阶段

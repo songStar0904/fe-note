@@ -537,6 +537,12 @@ const Foo = {
 ```
 
 - $nextTick 作用？实现原理？微任务向宏任务的降级处理，经常被问到说出几种宏任务，微任务。
+作用：获取Dom更新后的操作
+原理：核心是利用了浏览器的异步任务队列来实现的，并做了降级处理（Promise MutationObserver setImmediate setTimeout）
+当响应式数据更新后，会调用Dep.notify方法，通知Dep收集的Watcher去执行update方法，watcher.update将watcher放入watcher队列中
+然后nextTick方法将一个刷新watcher队列的方法（flushSchedulerQueue）放入全局callbacks数组中，当浏览器没有异步队列任务的时候，将执行timerFunc，将flushCallbacks函数放入异步任务队列中，如果有异步队列任务（存在flushCallbacks）则等待执行完成后再放入下一个flushCallbacks
+flushCallbacks负责执行callbacks数组中所有flushScheduleQueue
+flushScheduleQueue负责刷新watcher队列，执行watcher.run,从而进行更新阶段
 
 - vue响应式原理？基本都会问
 

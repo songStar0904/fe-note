@@ -23,7 +23,7 @@ function Scheduler (limit = 3) {
       pending.push([param, resolve, reject])
       run()
     })
-  }
+  }  
 };
 
 const createPromise = Scheduler();
@@ -203,3 +203,40 @@ const promise = (time) => new Promise((r) => {
 promiseTimeout(promise(500), 300).then(res => {
   console.log(res)
 })
+
+// 实现finally
+
+Promise.prototype.myFinally = function (cb) {
+  return this.then(value => Promise.resolve(cb()).then(() => value)).catch((reason) => Promise.resolve(cb()).then(() => { throw reason }))
+}
+
+Promise.myAll = function (promises) {
+  const results = []
+  if (!Array.isArray(promises)) return
+  const n = promises.length
+  return new Promise((resovle, reject) => {
+    for (let i = 0; i < n; i++) {
+      promises[i].then(res => {
+        results[i] = res
+        if (results.length === n) {
+          resovle(results)
+        }
+      }).catch(err => {
+        reject(err)
+      })
+    }
+  })
+}
+Promise.myRace = function (promises) {
+  if (!Array.isArray(promises)) return
+  const n = promises.length
+  return new Promise((resolve, reject) => {
+    for (let i = 0; i < n; i++) {
+      promises[i].then(res => {
+        resolve(res)
+      }).catch(err => {
+        reject(err)
+      })
+    }
+  })
+}

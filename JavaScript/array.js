@@ -117,3 +117,13 @@ Array.prototype.myFlat = function (num = 1) {
 }
 arr = [1, [2, [3]]]
 arr.myFlat(2)
+
+Array.prototype.myFlat = function (num = 1) {
+  let arr = this
+  let res = [...arr]
+  while (res.some((item) => Array.isArray(item)) && num > 0) {
+    res = [].concat(...res)
+    num--
+  }
+  return res
+}

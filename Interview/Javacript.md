@@ -15,31 +15,13 @@
 异步任务分为宏任务与微任务，常见的宏任务有：setTimeout，setInterval，script代码块，IO，setImmediate等，微任务有：promise.then，MutationObserver，process.nextick（node）queueMicrotask
 当执行任务队列时，会先执行同步任务，并将宏任务放到宏任务队列，微任务放到微任务队列。事件循环是以一个宏任务执行为周期，执行栈为空，下一个宏任务进栈，此时会先去检查当前微任务队列是否为空，如果有微任务，依次执行微任务，直到执行完微任务，宏任务执行完并出栈，接着开启下一个事件循环。
 
-#### 给出代码输出顺序
-```js
-async function async1() {
-    console.log('async1 start');
-    await async2();
-    console.log('async1 end');
-}
-async function async2() {
-    console.log('async2');
-}
-console.log('script start');
-setTimeout(function () {
-    console.log('setTimeout');
-}, 0)
-async1();
-new Promise(function (resolve) {
-    console.log('promise1');
-    resolve();
-    console.log('promise2')
-}).then(function () {
-    console.log('promise3');
-});
-console.log('script end');
-// script start async1 start async2 promise1 promise2 script end async1 end promise3 setTimeout
-```
+#### Node事件循环
+基于libuv实现的
+在Node10以前：
+- 执行完一个阶段所有任务
+- 执行完nextTick队列里面的内容
+- 然后执行完微任务队列内容
+Node11以后与浏览器一致
 
 ### 前端工程化理解
 前端工程化是一种思想，任何事物的出现都基于需求，面对日益复杂的前端项目，工程化就是类似工厂流水线，优化前端开发工作，例如：解决代码冗余，项目可维护性，提升版本迭代速度一系列问题。为了更加便捷的完成开发部署等工作，前端工程化可以分为四个方面：模块化，组件化，规范化，自动化。目前常见的前端工程化有：脚手架，代码模块化，组件库，webpack等打包工具，CICD，docker，jenkins等
@@ -110,119 +92,7 @@ console.log('script end');
 - 307：与 302 类似，但是使用原请求方法发起新情求。（输入http://www.baidu.com将会返回307，响应头返回：Location: https://www.baidu.com/。并发起https://www.baidu.com）
 - 308：与 301 类似，但是使用原请求方法发起新情求。
 一般可以用nginx配置重定向（rewrite）
-### 输出结果
-```js
-var b = 10;
-(function b(){
-    b = 20;
-    console.log(b); // [Function b]
-})();
-```
-这是一个立即执行函数（IIFE）还是一个具名函数（NFE）
-- 作为函数名的标识（b）只能从函数体内部访问，在函数外部访问不到
-- 绑定为函数名的标识（b）不能再绑定其他值，不可更变。
-[在JavaScript的立即执行的具名函数A内修改A的值时到底发生了什么？](https://segmentfault.com/q/1010000002810093)
 
-```js
-console.log(typeof typeof typeof null); // string 从第二个开始就是string
-console.log(typeof console.log(1)); // console.log返回undefined 所以结果也是undefined
-```
-
-```js
-var name = '123';
-
-var obj = {
-	name: '456',
-	print: function() {
-		function a() {
-			console.log(this.name);
-		}
-		a();
-	}
-}
-
-obj.print(); // 123 默认绑定
-```
-
-```js
-var a=3;
- function c(){
-    alert(a);
- }
- (function(){
-  var a=4;
-  c(); // 3 词法作用域。函数被定义的时候，它的作用域就已经确认了
- })();
-```
-
-```js
-const obj = {
-	fn1: () => console.log(this),
-	fn2: function() {console.log(this)}
-}
-
-obj.fn1(); // window 箭头函数
-obj.fn2(); // obj本身
-
-const x = new obj.fn1(); // 报错，箭头函数没有constructor
-const y = new obj.fn2(); // obj
-```
-
-```html
-<script src="./a.js" defer></script>
-<script src="./b.js"></script>
-<script>
-  console.log('event start')
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded finish')
-  })
-  window.addEventListener('load', () => {
-    console.log('onload finish')
-  })
-</script>
-<body>
-  <div>
-    <script>
-    let i = 0
-    while(i < 1000) {
-      i++
-    }
-    console.log('compute finished')
-    </script>
-  </div>
-</body>
-b finish
-event start
-compute finished
-a finish
-DOMContentLoaded finish
-onload finish
-```
-浏览器加载步骤：
-1. 解析html结构
-2. 加载外部js脚本和样式表文件（预扫描）
-3. 解析并执行js脚本
-4. dom树构建完成-html解析完毕（完成后触发onready 即DOMContentLoaded）
-5. 加载图片等外部文件（完成后触发图片onload）
-6. 页面加载完毕（完成后触发onload）
-
-defer 在html解析完成后执行，在触发DOMContentLoaded事件前执行
-
-### onready 和 onload 区别
-1. 执行时机，onready是在html解析完毕后执行，onload是在页面所有元素（包括图片+页面）加载完成后执行
-2. 执行次数，onready可以执行多个，并且都可以按顺序得到执行，onload只执行最后一次
-
-```js
-let arr = [1,2,3]
-let obj = {}
-function fn(arrTemp, objTemp) {
-  arrTemp = [] // 指向新地址
-  abjTemp.a = 1 // 原地址修改
-  abjTemp = {b : 2} // 指向新地址
-}
-fn(arr, obj)
-console.log(arr, obj) // [1,2,3] {a:1}
-```
 ### function 和 箭头函数区别
 - 箭头函数没有自己的this，永远指向外层，所以不能为构造函数，不能new，不能bind，call，apply
 - 不可以使用 arguments 对象，该对象在函数体内不存在。可用`...`代替
@@ -277,6 +147,14 @@ generator.next() // {value: undefined, done: true}
 2. ES5实例属性通过call来实现的，class通过super来实现
 3. class 子类实例可以继承原生构造函数实例的内部属性，ES5不行
 4. ES5实质是先创建子类实例对象，然后再将父类的方法添加到this上，ES6实质是先将父类实例对象属性和方法添加到this上（必须先到用super才能使用this），再用子类构造函数修改this
+
+### Class 静态方法和实例方法区别
+- 静态方法使用static关键字声明
+- 静态方法属于类自身方法，在类自身使用，实例方法可以被实例对象调用
+- 静态方法里this指向类（直接this.staticFn使用静态方法 使用this.prototype.fn使用实例方法），实例方法里this指向实例本身（可以直接this.fn使用实例方法，使用this.constructor.staicFn 使用静态方法）
+
+### 全局作用域中，用 const 和 let 声明的变量不在 window 上，那到底在哪里？如何去获取？
+在script块级作用域上，直接获取，不需要加window，因为window不存在
 
 ### Http 2.0和http3.0对比之前的版本, 分别做了哪些改进?
 
@@ -347,3 +225,102 @@ try_files $uri  $uri/ /index.html;
 
 ### Nodejs 异步IO模型
 nodejs是基于事件驱动的异步操作架构，內置模块是Events模块。
+
+### CommonJS AMD CMD ES6
+- AMD 异步加载模块，依赖前置，加载模块后直接执行，无法保证执行顺序
+- CMD 异步，依赖就近，加载后直接调用才按需执行
+- CommonJS （require exports）同步，输出是一个值的拷贝（一旦输出一个值，模块内部的变化不影响这个值），在运行时加载，在家的是整个模块-所有接口
+- ES6 （import export）异步，输出是值的引用（动态引用，脚本执行时，再根据引用，到模块里面取值，若原始值变了，import加载的值也跟着变），编译时输出，可以单独加载某个接口
+
+### object 与 map 区别
+
+- object 的key只能是字符串（number）或者Symbol，Map的key可以是任意
+- Map 键值对数量可以通过size获取，object可以通过Object.keys(obj).length获取
+- Map的键值是有序的，通过push的顺序进行排序的（可以迭代）
+- object支持JSON.stringify,JSON.parse操作，map不支持
+
+### set WeakSet map WeakMap
+
+- Set 成员唯一，无序且不重复，可以遍历
+- WeakSet 成员是对象，且弱引用，可以被垃圾回收机制回收（可以用来保存DOM节点，不容易造成内润泄露），不能遍历
+- Map 本质上是键值对的集合，可以遍历
+- WeakMap 只能接受对象作为键名，键名是弱引用，键值是任意的，同WeakSet可以被垃圾回收，不能遍历
+- WeakSet 只能存储对象引用，不能存放值，Set都可以
+- WeakSet 存储的对象值都是弱引用，即垃圾回收机制不需要考虑WeakSet对该对象的引用，如果没有其他变量或属性引用这个对象值，则这个对象将被垃圾回收掉。所以WeakSet对象里有多少个成员元素，取决于垃圾回收机制有没有运行，运行前后成员个数可能不一致，遍历结束后，有的成员可能取不到了（被垃圾回收），WeakSet对象无法被遍历。
+
+### npm install 做了什么
+#### npm安装机制：
+1. 发出npm install 命令
+2. 查询node_modules目录中是否已经存在指定模块
+  - 若存在，不再重新安装
+  - 若不存在
+    - npm向registry查询模块压缩包地址
+    - 下载压缩包，存放在根目录.npm目录下
+    - 解压压缩包到当前项目node_modules目录
+#### npm 实现原理
+1. 执行工程自身preinstall
+2. 确定首层依赖模块（dependencies，devDependencies）
+3. 获取模块（递归获取）
+  - 获取模块信息，首先会从package-lock.json中获取该模块信息，没有则根据package.json获取semver（语义化版本）
+  - 获取模块实体，上一步获取到模块压缩包地址，npm会用此地址检查本地缓存，缓存中有直接拿，没有则从地址中下载
+  - 查找该模块依赖，如果有继续递归获取该依赖模块
+4. 模块扁平化
+将相同模块名且semver兼容的模块提取到项目node_modules上，其他重复名单semver不兼容的依赖还是会在模块的node_modules里
+5. 安装模块
+6. 执行生命周期 (postinstall prepublish prepare)更新package-lock.json
+
+#### semver（semantic version 语义化版本）
+- 主版本号：不兼容的API修改
+- 次版本号：做了向下兼容的功能性新增。feature版本
+- 修订号：做了向下兼容的问题修正。bugfix版本
+
+- `^` 同一主版本号中，不小于指定版本号的版本号（^2.1.0 -->2.1.1,2.2.0）
+- `~` 统一主版本号和次版本号，不小于指定版本号的版本号（~2.1.0 --> 2.1.1）
+
+#### package-lock.json作用
+包含每个模块对应的版本，压缩包地址，依赖和完整hash
+- 锁定安装模块版本号
+- 固定依赖版本位置，避免项目结构混乱
+- 完整hash是用来验证资源的完整性，防止别人篡改内容
+
+### call 和 apply 的区别是什么，哪个性能更好一些
+
+参数不同，call是一个一个参数，apply是数组或者类数组
+call比apply好，因为apply会有一步把类数组转数组的操作CreateListFromArrayLike
+
+### ES6 如何转成ES5
+- 将代码字符串解析成抽象语法树AST（@babel/parser中parse）
+- 将AST进行处理，在这个阶段可以对ES6代码进行相应转换成ES代码（@babel/core中transformfromAstSync转换AST @babel/traverse获取依赖文件）
+- 根据处理后的AST再生成代码字符串
+
+[es6在线编译](https://www.babeljs.cn/repl#?browsers=&build=&builtIns=false&corejs=3.21&spec=false&loose=false&code_lz=DYUwLgBAhhC8EEYBQBvJBIUkb2QXySQDMB7AJwgAosIBLOCABgG46IAeCAVldoGo-ASjToAzuAAqtALYgSAVzCVKguAD4II9AGMSAO1ElQAOmAkA5pVqCMeGwSA&debug=false&forceAllTransforms=false&shippedProposals=false&circleciRepo=&evaluate=false&fileSize=false&timeTravel=false&sourceType=module&lineWrap=true&presets=es2015&prettier=true&targets=&version=7.20.4&externalPlugins=&assumptions=%7B%7D)
+
+```js
+// es6
+let a = 1
+{
+	let a = 1
+}
+
+for (let i = 0; i < 5; i++){
+	setTimeout(() => {
+		console.log(i)
+	})
+}
+// es5
+"use strict";
+
+var a = 1;
+{
+  var _a = 1;
+}
+var _loop = function _loop(i) {
+  setTimeout(function () {
+    console.log(i);
+  });
+};
+for (var i = 0; i < 5; i++) {
+  _loop(i);
+}
+
+```

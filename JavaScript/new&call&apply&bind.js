@@ -71,6 +71,23 @@ Function.prototype.myApply = function(context = window, args) {
  * 3. 调用bindFn在传递剩下的参数
  * 4. bind()函数回创建一个新绑定的函数（bound function）绑定函数也可以使用new运算符构造，提供的this值会被忽略，但迁至参数仍会提供给模拟函数
  */
+
+Function.prototype.myBind = function (context, ...args) {
+  let fn = this
+  if (typeof fn !== 'function') {
+    throw new Error('fn must be a function')
+  }
+
+  const fBound = function () {
+    return fn.call(this instanceof fn ? this : context, ...args, ...arguments)
+  }
+  if (fn.prototype) {
+    fBound.prototype = Object.create(fn.prototype)
+  }
+  return fBound
+
+}
+
 Function.prototype.myBind = function(context, ...args) {
   let fn = this
   if (typeof fn !== 'function') {
