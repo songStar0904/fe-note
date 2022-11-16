@@ -148,3 +148,14 @@ function getQueryObj(url) {
   })
   return res
 }
+
+function getQueryObj (url) {
+  let res = {}
+  let match
+  const reg = /([^&?=]+)=([^?&=]*)/g
+  while (match = reg.exec(url)) {
+    res[decodeURIComponent(match[1])] = decodeURIComponent(match[2])
+  }
+  return res
+}
+getQueryObj('https://www.baidu.com?a=1&b=2')

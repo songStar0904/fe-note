@@ -86,10 +86,10 @@ Node11以后与浏览器一致
 5. 客户端使用client key对收到的数据进行解密
 
 ### 301 302 304 区别
-- 301： 永久重定向，当前请求的资源已被移除时使用，响应的 Location 头字段会提供资源现在的 URL。直接使用 GET 方法发起新情求。（永久重定向浏览器会记录，下次访问a.com就不会请求a.com而是直接去b.com）
+- 301：永久重定向，当前请求的资源已被移除时使用，响应的 Location 头字段会提供资源现在的 URL。直接使用 GET 方法发起新情求。（永久重定向浏览器会记录，下次访问a.com就不会请求a.com而是直接去b.com）
 - 302：临时重定向，与 301 类似，但客户端只应该将 Location 返回的 URL当做临时资源来使用，将来请求时，还是用老的 URL。直接使用 GET 方法发起新情求。
 - 304：资源未修改，使用协商缓存
-- 307：与 302 类似，但是使用原请求方法发起新情求。（输入http://www.baidu.com将会返回307，响应头返回：Location: https://www.baidu.com/。并发起https://www.baidu.com）
+- 307：与 302 类似，但是使用原请求方法发起新情求。（输入http://www.baidu.com 将会返回307，响应头返回：Location: https://www.baidu.com/。并发起https://www.baidu.com）
 - 308：与 301 类似，但是使用原请求方法发起新情求。
 一般可以用nginx配置重定向（rewrite）
 
@@ -98,10 +98,9 @@ Node11以后与浏览器一致
 - 不可以使用 arguments 对象，该对象在函数体内不存在。可用`...`代替
 - 不可以使用 yield 命令，因此箭头函数不能用作 Generator 函数。
 
-
 ### generator 是如何做到中断和恢复的
 - 遇到yield表达式，就暂停执行后面的操作，并将紧跟在yield后面的哪个表达式的值，作为返回对象的value属性
-- 下一次调用next方法时，在继续往下执行，知道遇到下一个yield表达式或者return，return后面的值，作为返回对象的值，done为true
+- 下一次调用next方法时，在继续往下执行，直到遇到下一个yield表达式或者return，return后面的值，作为返回对象的值，done为true
 
 ### async/await, generator, promise这三者的关联和区别是什么?
 关联：都可以处理异步
@@ -144,7 +143,7 @@ generator.next() // {value: undefined, done: true}
 
 ### ES5和ES6的继承? 这两种方式除了写法, 还有其他区别吗?
 1. class 内部默认严格模式，默认绑定的this为undefined
-2. ES5实例属性通过call来实现的，class通过super来实现
+2. ES5实例属性通过call来实现继承的，class通过super来实现继承
 3. class 子类实例可以继承原生构造函数实例的内部属性，ES5不行
 4. ES5实质是先创建子类实例对象，然后再将父类的方法添加到this上，ES6实质是先将父类实例对象属性和方法添加到this上（必须先到用super才能使用this），再用子类构造函数修改this
 
@@ -229,7 +228,7 @@ nodejs是基于事件驱动的异步操作架构，內置模块是Events模块�
 ### CommonJS AMD CMD ES6
 - AMD 异步加载模块，依赖前置，加载模块后直接执行，无法保证执行顺序
 - CMD 异步，依赖就近，加载后直接调用才按需执行
-- CommonJS （require exports）同步，输出是一个值的拷贝（一旦输出一个值，模块内部的变化不影响这个值），在运行时加载，在家的是整个模块-所有接口
+- CommonJS （require exports）同步，输出是一个值的拷贝（一旦输出一个值，模块内部的变化不影响这个值），在运行时加载，加载的是整个模块-所有接口
 - ES6 （import export）异步，输出是值的引用（动态引用，脚本执行时，再根据引用，到模块里面取值，若原始值变了，import加载的值也跟着变），编译时输出，可以单独加载某个接口
 
 ### object 与 map 区别
@@ -290,7 +289,7 @@ call比apply好，因为apply会有一步把类数组转数组的操作CreateLis
 
 ### ES6 如何转成ES5
 - 将代码字符串解析成抽象语法树AST（@babel/parser中parse）
-- 将AST进行处理，在这个阶段可以对ES6代码进行相应转换成ES代码（@babel/core中transformfromAstSync转换AST @babel/traverse获取依赖文件）
+- 将AST进行处理，在这个阶段可以对ES6代码进行相应转换成ES代码（@babel/core中transformfromAstSync AST转换ES5 Code @babel/traverse获取依赖文件）
 - 根据处理后的AST再生成代码字符串
 
 [es6在线编译](https://www.babeljs.cn/repl#?browsers=&build=&builtIns=false&corejs=3.21&spec=false&loose=false&code_lz=DYUwLgBAhhC8EEYBQBvJBIUkb2QXySQDMB7AJwgAosIBLOCABgG46IAeCAVldoGo-ASjToAzuAAqtALYgSAVzCVKguAD4II9AGMSAO1ElQAOmAkA5pVqCMeGwSA&debug=false&forceAllTransforms=false&shippedProposals=false&circleciRepo=&evaluate=false&fileSize=false&timeTravel=false&sourceType=module&lineWrap=true&presets=es2015&prettier=true&targets=&version=7.20.4&externalPlugins=&assumptions=%7B%7D)

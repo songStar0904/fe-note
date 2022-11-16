@@ -14,7 +14,7 @@ Vue2的核心Diff算法采用了双端比较的算法，同时从新旧children�
 
 #### 事件机制不同
 1. Vue原生事件使用标准web事件，组件自定义事件机制是父子组件通信基础
-2. React原生组件被包装，所有事件都被冒泡到顶层root监听，然后在这里集中合成事件下发。基于这套可以跨端使用事件机制。组件上无事件，父子组件通信通过props
+2. React原生组件被包装，所有事件都被冒泡到顶层root监听，然后在这里集中合成事件下发。基于这套可以跨端使用事件机制，不仅减少了内存的消耗，还能再组件挂载销毁时统一订阅和移除事件。组件上无事件，父子组件通信通过props
 
 #### 组件化不同
 1. Vue 使用 template + js + css Vue单文件
@@ -53,6 +53,13 @@ React：
 因为Fiber是单向链表结构，这样可以很快的找到fiber节点第一个子节点，下一个兄弟节点，以及父节点，却不容易知道它的前一个Fiber节点是谁。
 **为什么Vue不使用时间分片**
 时间分片也是有代价的，它需要自己实现一个调度器，然后在调度的过程中切换也会由损耗，并且fiber结构不利于双端比较。Vue触发render更新是通过render watcher来通知的，是再el挂载的时候注册了render watcher，它对template中所用到的data属性进行了依赖收集，所以只有在tempalte用到的响应式数据发生了变化才会触发订阅通知，因此Vue对diff的比较频率天生要比React少且有效，所以使用时间分片的意义不大。
+**如何理解Fiber时间分片**
+主动让出机制，React向浏览器申请时间片，浏览器在空闲的时候会根据任务优先级继续执行JS，当浏览器有任务的时候，JS中断，交还执行权给浏览器，让浏览器渲染始终保持流畅
+如何实现：利用MessageChannel模拟将回调延迟到渲染操作之后执行。
+**时间切片出现在React哪个阶段**
+协调阶段：因为协调阶段执行的工作不会导致任何用户可见的变更，所以这个阶段让出控制权不会由影响。
+注意：协调阶段可能被中断，恢复，甚至重做。所以React 协调阶段的生命周期钩子可能会被调用多次，因此建议协调阶段声明周期钩子不要包含副作用。
+而提交阶段必须是同步执行，不能被中断
 
 ### Vue 和 React 里的key作用是什么？为什么不能用Index？用了会怎样？如果不加key会怎样？
 作用：
@@ -166,6 +173,7 @@ template在el挂载后会通过parse解析成render函数，render接受createEl
 1. Proxy
 - 无法监听数组变化。
 - 只能劫持对象的属性,因此我们需要对每个对象的每个属性进行遍历，如果属性值也是对象那么需要深度遍历,显然能劫持一个完整的对象是更好的选择。
+- 对于新增响应式数据，需要调用$set来手动添加，proxy可以监听整个对象的增删改
 - proxy 性能更好
 - proxy 兼容性问题不好
 - 除了 get 和 set 之外，proxy 可以拦截多达 13 种操作，比如 has(target, propKey)，可以拦截 propKey in proxy 的操作，返回一个布尔值。
@@ -201,15 +209,22 @@ template在el挂载后会通过parse解析成render函数，render接受createEl
 - static getDerivedStateFromError
 在后代组件抛出错误后被调用。它将抛出的错误作为参数，并返回一个值以更新 state
 
+### Vue原理
+1. 编译器将template转换为render函数
+2. 响应式模块对响应式数据初始化（依赖收集和订阅通知）
+3. 渲染器调用render函数，它引用了响应对象，通过watcher观察响应对象变化，最终返回虚拟DOM
+4. 渲染器挂载阶段将虚拟DOM通过API创建页面
+5. 当响应式数据发生变化时，会被Watcher监听，渲染器再次调用render函数，获取新的虚拟DOM，进入patch阶段，比较新旧虚拟DOM，更新变化页面
+
 ### React原理
 1. 由babel解析jsx为React.createElement,返回虚拟Dom
 2. 使用ReactDOM.render将虚拟dom挂载到container上
 3. render初始化wipRoot(root fiber),并将nextUnitOfWork = wipRoot
 4. workLoop,基于requestIdleCallback,向浏览器获取控制权,执行performUnitOfWork
 5. performUnitOfWork通过深度优先遍历wipRoot下所有节点,并更新wip fiber 树(这里会递归遍历整个fiber tree,所以可以利用shouldComponentUpdate 来优化,减少diff对比)
-6. reconcileChildren通过旧fiber与新children做diff对比,将effectTag等信息更新到fiber上
-7. 更新完wipRoot后,根据fiber的effectsTag来更新删除创建dom
-8. setState会创建一个新的wipRoot,并将nextUnitOfWork = wipRoot,等到浏览器让出控制权将会更新页面
+6. reconcileChildren通过旧fiber与新children做diff对比,将effectTag等信息更新到wipFiber上
+7. 更新完wipRoot后,执行commitWork,根据fiber的effectsTag来更新删除创建dom,最终初始化currentRoot wipRoot deletions
+8. setState会创建一个新的wipRoot,并将nextUnitOfWork = wipRoot,等到浏览器让出控制权将会进入协调阶段并更新页面
 ### redux原理
 
 核心：Store存储state数据集合 action改变state的指令 Reducer接受action来改变store状态
@@ -227,7 +242,7 @@ template在el挂载后会通过parse解析成render函数，render接受createEl
 
 ### useRef / ref / forwardRef 的区别是什么?
 - useRef 返回一个可变的ref对象，其.current属性被初始化为传入参数，更变current不会引起组件重新渲染，无论在生命周期任何节点使用current始终返回最新的值。（useRef存的是个引用地址，所以current的更新不会引起组件更新，且获取始终最新值）通常和ref一起使用。
-- useImperativeHandle 可以让你在使用ref时自定义暴露父组件实例，通常和forwardRef一起使用
+- useImperativeHandle 可以让你在使用ref时自定义暴露给父组件实例，通常和forwardRef一起使用
 ```js
 function FancyInput(props, ref) {
   const inputRef = useRef();
@@ -244,9 +259,9 @@ FancyInput = forwardRef(FancyInput);
 
 
 ### useEffect的第二个参数, 传空数组和传依赖数组有什么区别?
-传空只会执行一遍，传数组会根据数组中的依赖值变化而执行
+传空只会执行一遍，在组件挂载后componentDidMount执行，传数组会根据数组中的依赖值变化而执行
 ### 如果return 了一个函数, 传空数组的话是在什么时候执行? 传依赖数组的时候是在什么时候执行?
-传空是在组件销毁前执行，传依赖数组是在依赖组件修改时，执行上一个effect对应的清除执行
+传空是在组件销毁前componentWillUnmount执行，传依赖数组是在依赖组件修改时，执行上一个effect对应的清除执行
 
 ### hooks解决了什么问题
 1. 组件之间逻辑或者状态复用（共享状态逻辑），旧的实现使用render props 或者高阶组件
@@ -266,35 +281,8 @@ React:
 4. Redux
 
 ### React 虚拟Dom如何转成真实Dom的
-**虚拟Dom由来**：
-由babel将jsx转化成React.reacteElement(),reacteElement函数返回的就是vnode，最终通过RenderDOM.render(vnode, container[, callback])将虚拟dom挂载到真实Dom上去。
-```js
-function createElement(type, config, ...children) {
-  // 对props做处理
-  const props = {
-    ...config,
-    children: children.map(child => typeof child === 'object' ? child : createTextNode(child)) 
-  }
-  return {
-    type,
-    props
-  }
-}
-function createTextNode(text) {
-    return {
-        type: TEXT,
-        props: {
-            children: [],
-            nodeValue: text
-        }
-    };
-}
-```
-createElement 会根据传入的节点信息进行判断
-- 原生标签节点，type是字符串，如div
-- 文本节点，type是Text标识
-- 函数组件，type是函数本身
-- 类组件， type是类构造函数
+- 由Babel将JSX转换成React.createElement()函数，此函数返回虚拟DOM
+- 再由ReactDOM.render函数将生成好的虚拟DOM渲染到指定容器上，其中采用了批处理，事务等机制，最终转换成真实DOM
 
 ### Vue 如何对数组进行响应式的
 - 重写改变原数组的7个方法（push pop unshift shift sort splice reverse）
@@ -302,8 +290,8 @@ createElement 会根据传入的节点信息进行判断
 - 手动调用notify，触发订阅通知
 
 ### nextTick原理
-响应式数据更新后，会触发dep.notify，通知dep中手机的watcher去执行update方法。 将对应所有watcher放入一个watcher队列中（这里会做去重和排序处理）。
+响应式数据更新后，会触发dep.notify，通知dep中收集的watcher去执行update方法。 将对应所有watcher放入一个watcher队列中（这里会做去重和排序处理）。
 然后通过nextTick方法将刷新watcher队列的方法（flushSchedulerQueue）放入一个全局callbacks数组中（包含用户nextick回调函数）
 如果此时浏览器异步任务队列没有flushCallbacks函数在执行，则执行timerFunc函数，将flushCallbacks函数放入异步队列中（异步队列方法会降级处理promise mutationobserver setImmidiate setTimeout）。如果异步队列中存在flushCallbacks函数，等待其执行完成后再放入下一个flushCallbacks函数
 - flushCallbacks：执行当前所有callbacks数组中的flushSchedulerQueue函数
-- flushSchedulerQueue：负责刷新watcher队列，执行queue数组中美国和watcher.run，从而进行更新阶段
+- flushSchedulerQueue：负责刷新watcher队列，执行queue数组中的watcher.run，从而进行更新阶段

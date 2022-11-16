@@ -3,7 +3,7 @@
 ```jsx
 <div onClick={this.handleClick.bind(this)}>点我</div>
 ```
-React 并不是将click事件绑定到div的真实DOM上，而是在document处监听了所有的事件，当事件发生并且冒泡到document处的时候（React17代理到容器节点），React将事件内容封装并交由正真的处理函数运行。这样不仅仅减少了内存的消耗，还能再组件挂载销毁时统一订阅和移除事件。
+React 并不是将click事件绑定到div的真实DOM上，而是在document处监听了所有的事件，当事件发生并且冒泡到document处的时候（React17代理到root容器节点），React将事件内容封装并交由真正的处理函数运行。这样不仅仅减少了内存的消耗，还能再组件挂载销毁时统一订阅和移除事件。
 除此之外，冒泡到document上的事件也不是原生的浏览器事件，而是有React自己实现的合成事件（SyntheticEvent）。因此如果不想要事件冒泡的话应该调用（xxx），而不是调用event.stopPropagation()（只会阻止合成事件的冒泡，但是原生事件先执行，所以原生事件还会执行）。
 原生冒泡事件是冒泡的过程中触发事件，而合成事件是会在冒泡到document后统一触发事件（按照冒泡顺序），当然document上的事件最后触发。
 ```jsx
@@ -90,7 +90,7 @@ React 事件：父元素事件监听！
 
 ### 为什么class component需要绑定bind
 类比Class
-```
+```js
 class Foo {
   constructor(name){
     this.name = name
@@ -113,7 +113,7 @@ display(); // TypeError: this is undefined
 
 ## React的事件和普通的HTML事件有什么不同
 区别：
-- 对于事件名称命名方式，原生事件为全小写，react事件采用小驼峰；可以看出来Vue使用的是原生事件，所以$emit不能使用驼峰。
+- 对于事件名称命名方式，原生事件为全小写，对大小写不敏感，react事件采用小驼峰；可以看出来Vue使用的是原生事件，所以推荐始终使用 kebab-case 的事件名（@my-event="xxx"）。
 - 对于事件函数处理语法，原生事件为字符串，react事件为函数。
 - react事件不能采用 return false 的方式来组织浏览器的默认行为，而必须明确的调用preventDefault。
 ```html
@@ -241,7 +241,7 @@ p -> a -> h1 -> h2 -> div
 2. Reconciliation 比较新生成的fiber树和上次提交到DOM的fiber树（diff）
 - 对于新旧节点类型是相同的情况，复用旧的DOM，仅修改上面的属性，effectTags标记为'UPDATE'
 - 如果类型不同，需要创建一个新的DOM节点,effectTags标记为'PLACEMENT'
-- 如果类型不同，并且就节点存在的话，需要把就节点DOM给移除。effectTags标记为'DELETION'，并将放入deletions数组中，因为后续commitWork不会遍历旧Fiber树，而是只遍历deletions和新Fiber树
+- 如果类型不同，并且旧节点存在的话，需要把就节点DOM给移除。effectTags标记为'DELETION'，并将放入deletions数组中，因为后续commitWork不会遍历旧Fiber树，而是只遍历deletions和新Fiber树
 React使用key这个属性来优化reconcliliation过程，比如key属性可以用来检测elements数组中的子组件是否仅仅更换了位置
 
 ## 对比React15，它的缺陷
@@ -451,7 +451,7 @@ export const Deletion = /*                 */ 0b00000000001000;
 ## Diff
 
 - 只对同级元素进行Diff。如果一个DOM节点在前后两次更新中跨越了层级。那么React不会尝试复用它。
-- 两个不同类型的元素会长生不同的树。如果元素由div变成p，React会销毁div及其子孙节点，并创建p及其子孙节点。
+- 两个不同类型的元素会生成不同的树。如果元素由div变成p，React会销毁div及其子孙节点，并创建p及其子孙节点。
 - 开发者可以通过key来暗示哪些子元素在不同的渲染能保持稳定。
 ```jsx
 // 更新前
@@ -611,7 +611,7 @@ oldIndex 1 < lastPlacedIndex 3
 
 ### 为什么Vue中不需要使用Fiber or 时间切片
 - 首先时间分片是为了解决CPU进行大量计算的问题，因为React本身架构的问题，在默认情况下更新会进行过多的计算，就算使用React提供的性能优化API，也会因为开发者本身问题依旧可能存在过多计算问题。
-- 而Vue通过响应式依赖跟踪，在默认情况下可以做到只进行组件树级别的计算，而默认下React是做不到的（据说React已经进行了这方面的优化工作）再者Vue通过template进行编译，可以在编译的时候进行非常好的性能优化，比如对静态节点进行静态节点提升的优化处理，二通过JSX进行编译的React是做不到的。
+- 而Vue通过响应式依赖跟踪，在默认情况下可以做到只进行组件树级别的计算，而默认下React是做不到的（据说React已经进行了这方面的优化工作）再者Vue通过template进行编译，可以在编译的时候进行非常好的性能优化，比如对静态节点进行静态节点提升的优化处理，而通过JSX进行编译的React是做不到的。
 - React为了解决更新的时候进行过多计算问题引入时间切片，但同时也带来了额外的计算开销，就是任务协调的计算，虽然React也是用最小堆等算法进行优化，但相对Vue还是多了额外的性能开销，因为Vue没有时间分片，所以没有这方面的性能担忧
 - 根据研究表明，人类的肉眼对 100 毫秒以内的时间并不敏感，所以时间分片只对于处理超过 100 毫秒以上的计算才有很好的收益，而 Vue 的更新计算是很少出现 100 毫秒以上的计算的，所以 Vue 引入时间分片的收益并不划算。
 
