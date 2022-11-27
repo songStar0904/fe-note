@@ -126,7 +126,7 @@ generator.next() // {value: undefined, done: true}
 
 ### 浏览器输入url开始发生了什么
 
-1. dns解析（将域名地址解析成ip地址）
+1. dns解析（将域名地址解析成ip地址）(递归 浏览器dns缓存->操作系统host->dns服务器 （根域名服务器，权威服务器，顶级域名服务器迭代）)
 2. 建立TCP连接（三次握手）
 - 客户端通过SYN报文发送连接请求，确定服务端是否开启端口准备链接，状态设置SYN_SEND
 - 服务器如果有开着的端口并且决定接受连接，就会返回SYN+ACK报文给客户端，状态设置为SYN_RECV
@@ -321,5 +321,14 @@ var _loop = function _loop(i) {
 for (var i = 0; i < 5; i++) {
   _loop(i);
 }
-
 ```
+
+### 灰度发布
+
+- nginx + 服务端 + redis + 前端sdk
+![beta](./assets/beta.png)
+1. 部署两个版本（stable，beta）
+2. 分别给stable和beta启动nginx服务，在运维层启动一层入口nginx服务，作为转发
+3. 客户端通过域名访问项目，通过灰度规则，命中灰度规则后，并给客户端设置cookie作为标识，将用户存到redis，将用户重定向指定版本
+4. 灰度规则接口请求的时候，如果已经带有cookie则直接转发到对应版本，不存在cookie则去查找redis，redis存在对应信息直接返回，如果不存在则走灰度规则识别流程
+5. 前端sdk功能：用于控制发起灰度规则请求的时机，回调操作等

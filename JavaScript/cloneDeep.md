@@ -15,11 +15,12 @@ let source = {
     b: 1
   }
 }
-Object.assign(target, source)
+let newObj = Object.assign(target, source)
 console.log(target) // {a: {b: 1}}
 source.a.b = 2
 console.log(source) // {a: {b: 2}}
 console.log(target) // {a: {b: 2}}
+console.log(newObj) // {a: {b: 2}}
 ```
 使用`Object.assign`需要注意的几点：
 - 不会拷贝对象的继承属性
@@ -50,7 +51,7 @@ let source = {
 }
 let target = {
   ...source
-}
+} 
 console.log(target) // {a: {b: 1}}
 source.a.b = 2
 console.log(source) // {a: {b: 2}}

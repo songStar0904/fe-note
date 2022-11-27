@@ -806,7 +806,7 @@ class EventEmitter {
     return this
   }
   $off(event, listener) {
-    if (!event || !listener) {
+    if (!event && !listener) {
       this._events = {}
     } else if (event && !listener) {
       delete this._events[event]
@@ -1366,4 +1366,22 @@ Promise.myRace = function (promises) {
     }
   })
 }
+```
+
+// excel表多很多列（A, B.....AA, AB, ....ABC），输入第几列，输出列头名 number2ExcelName(n: number)
+```js
+function number2ExcelName (n) {
+  const count = 26;
+  const baseCode = 'A'.charCodeAt(0)
+  let res = ''
+  while(n) {
+    n-- // 对余数-1
+    res = String.fromCharCode(n % count + baseCode) + res
+    n = Math.floor(n / count)
+  }
+  return res
+}
+number2ExcelName(27) // AA
+number2ExcelName(28) // AB
+number2ExcelName(19010) // ABCD
 ```

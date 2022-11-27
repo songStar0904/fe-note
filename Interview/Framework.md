@@ -10,7 +10,8 @@
 
 #### diif算法
 
-Vue2的核心Diff算法采用了双端比较的算法，同时从新旧children的两端开始进行比较，借助key值找到可复用的节点，再进行相关操作。React 由于Fiber结构是单向链表，不能通过双端对比，不过可以利用时间切片，合理利用浏览器调度，达到渲染不卡顿的目的。
+1. Vue2的核心Diff算法采用了双端比较的算法，同时从新旧children的两端开始进行比较，借助key值找到可复用的节点，再进行相关操作。
+2. React 由于Fiber结构是单向链表，不能通过双端对比，不过可以利用时间切片，合理利用浏览器调度，达到渲染不卡顿的目的。
 
 #### 事件机制不同
 1. Vue原生事件使用标准web事件，组件自定义事件机制是父子组件通信基础
@@ -221,7 +222,7 @@ template在el挂载后会通过parse解析成render函数，render接受createEl
 2. 使用ReactDOM.render将虚拟dom挂载到container上
 3. render初始化wipRoot(root fiber),并将nextUnitOfWork = wipRoot
 4. workLoop,基于requestIdleCallback,向浏览器获取控制权,执行performUnitOfWork
-5. performUnitOfWork通过深度优先遍历wipRoot下所有节点,并更新wip fiber 树(这里会递归遍历整个fiber tree,所以可以利用shouldComponentUpdate 来优化,减少diff对比)
+5. performUnitOfWork通过深度优先遍历wipRoot下所有节点,并更新wip fiber 树(这里会遍历整个fiber tree,所以可以利用shouldComponentUpdate 来优化,减少diff对比)
 6. reconcileChildren通过旧fiber与新children做diff对比,将effectTag等信息更新到wipFiber上
 7. 更新完wipRoot后,执行commitWork,根据fiber的effectsTag来更新删除创建dom,最终初始化currentRoot wipRoot deletions
 8. setState会创建一个新的wipRoot,并将nextUnitOfWork = wipRoot,等到浏览器让出控制权将会进入协调阶段并更新页面
@@ -232,7 +233,7 @@ template在el挂载后会通过parse解析成render函数，render接受createEl
 1. store.subscribe：订阅state的变化，当state变化的时候执行回调，可以有多个subscribe，里面的回调会依次执行
 2. store.dispatch：触发action的方法，每次dispatch(action)都会执行reducer生成新的state，然后执行subscribe注册的回调
 3. store.getState：返回当前state
-这是一个发布订阅模式
+这是一个发布订阅模式(subscribe订阅消息，createStore存储了一个订阅数组，当dispatch执行，触发所有订阅消息执行)
 
 #### 为什么 Vuex 的 mutation 和 Redux 的 reducer 中不能做异步操作？
 为了保证状态可预测：
