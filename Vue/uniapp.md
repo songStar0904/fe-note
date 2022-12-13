@@ -46,4 +46,4 @@ export default {
 
 - 自定义组件实现局部数据更新
 
-- onPageScroll避免频繁更新，使用innerSectionObserve代替。
+- onPageScroll避免频繁更新，使用innerSectionObserver代替。

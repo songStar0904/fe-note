@@ -94,12 +94,13 @@ Function.prototype.myBind = function(context, ...args) {
     throw new Error('fn must be a function')
   }
   let fBound = function () {
-    debugger
     return fn.apply(this instanceof fn ? this : context, [
       ...args,
       ...arguments,
     ])
   }
+  // 如果绑定的是构造函数 那么需要继承构造函数原型属性和方法
+  // 实现继承的方式: 使用Object.create
   if (fn.prototype) {
     fBound.prototype = Object.create(fn.prototype)
   }

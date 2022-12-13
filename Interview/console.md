@@ -5,7 +5,11 @@ async function async1() {
     console.log('async1 end');
 }
 async function async2() {
-    console.log('async2');
+  console.log('async2 start');
+  return new Promise((resolve) => {
+    resolve('sss')
+    console.log('async2 promise')
+  })
 }
 console.log('script start');
 setTimeout(function () {
@@ -20,7 +24,37 @@ new Promise(function (resolve) {
     console.log('promise3');
 });
 console.log('script end');
-// script start async1 start async2 promise1 promise2 script end async1 end promise3 setTimeout
+// script start 
+// async1 start 
+// async2 start 
+// promise1 
+// promise2 
+// script end 
+// async1 end 
+// promise3 
+// setTimeout
+new Promise((resolve) => {
+  console.log('1')
+  resolve(new Promise((resolve) => {
+    resolve('sss')
+    console.log('2')
+  }))
+}).then(() => {
+  console.log('3')
+})
+new Promise(function (resolve) {
+    console.log('4');
+    resolve();
+    console.log('5')
+}).then(function () {
+    console.log('6');
+});
+// 1
+// 2
+// 3
+// 4
+// 5
+// 3
 ```
 
 ```js
@@ -36,7 +70,7 @@ var b = 10;
 - 绑定为函数名的标识（b）不能再绑定其他值，不可更变。
 [在JavaScript的立即执行的具名函数A内修改A的值时到底发生了什么？](https://segmentfault.com/q/1010000002810093)
 解释2：
-1. 函数表达式与函数声明不同，函数名旨在该函数内部有效，且此绑定时常量绑定
+1. 函数表达式与函数声明不同，函数名旨在该函数内部有效，且此绑定是常量绑定
 2. 对于一个常量进行赋值，在 strict 模式下会报错，非 strict 模式下静默失败。
 3. IIFE中的函数是函数表达式，而不是函数声明。
 
@@ -297,3 +331,42 @@ console.log('1', a) // -> '1' 1
 - b函数await 10 异步会跳出来 此时记录a = 0
 - a++ 执行 1 1
 - 执行微任务 a = 0 + 10 输出 2 10
+
+```js
+var a = 3
+var total = 0
+var results = []
+function fn(a) {
+  var i = 0
+  for (; i < 3; i++) {
+    results[i] = function() {
+      total += i * a
+      console.log(total)
+    }
+  }
+}
+
+fn(1)
+results[0]()
+results[1]()
+results[2]()
+// 3 6 9
+```
+
+```js
+Promise.reject(2)
+.catch(err=>console.log("err1,",err))
+.then(res=>{console.log("then1",res)})
+.catch(err=>console.log("err2,",err))
+// err1,2
+// then1 undefined
+```
+
+```js
+3.toString() // 报错 Uncaught SyntaxError: Invalid or unexpected token
+3..toString() // '3'
+3...toString() // 报错
+```
+- (3.)toString()
+- (3.).toString()
+- (3)..toString()

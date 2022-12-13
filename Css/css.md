@@ -11,18 +11,23 @@ box-sizing: border-box;
 
 ## BFC(Block Formatting Context块级格式化上下文)
 
-// BFC 块级格式化上下文，会产生一个BFC盒子
-// 内部盒子依次垂直排列
-// 盒子不会与float box 重叠
-// 盒子里面无论怎么变化都不会影响盒子外，反之亦然
-// 1. float 不为none
-// 2. position: absolute/fixed
-// 3. display: inline-block table table-cell
-// 4.  overflow 部位 visible;
-// 5. 根元素
-// margin 重叠
-// float 塌陷 计算高度内容
-// 自适应多栏布局 (BFC的区域不会与float box重叠。因此，可以触发生成一个新的BFC)
+特性：
+1. 内部的黑子会在垂直方向上一个接一个放置
+2. 对于同一个BFC的两个相邻的盒子margin会发生重叠，与方向无关
+3. 每个元素的左外边距与包含快的左边界想接触，即使浮动元素也是如此
+4. BFC区域不会与float元素区域重叠
+5. 计算BFC高度时，浮动子元素也参与计算
+6. BFC就是页面上的一个隔离的独立容器，容器里面的子元素不会影响到外面元素，反之亦然
+触发条件：
+1. 根元素
+2. 浮动元素：float不为none
+3. overflow不为visible
+4. display值为inline-block table flex inline-flex等
+5. position为absolute或fixed
+应用场景：
+1. 防止margin 重叠
+2. float 塌陷 计算高度内容
+3. 自适应多栏布局 (BFC的区域不会与float box重叠。因此，可以触发生成一个新的BFC)
 
 ### 特性
 
@@ -38,7 +43,7 @@ box-sizing: border-box;
 2. float属性部位none。
 3. position属性值为absolute或者fixed。
 4. display为 inline-block，flow-root，table-cell，table-caption以及table相关属性。
-5. overflow属性值部位visible。
+5. overflow属性值不为visible。
 
 ## visibility: hidden 和 display: none 和 opacity: 0 有什么区别
 
@@ -108,3 +113,62 @@ padding-top / padding-bottom 有效，但不影响结果（会重叠）
 1. 不要将will-change应用到太多元素上，如果过度使用的话可能导致页面响应缓慢或者消耗更多资源
 2. 通常，当元素恢复到初始状态时，浏览器会丢弃掉之前做的优化工作。但是如果直接在样式表中显式声明了 will-change 属性，则表示目标元素可能会经常变化，浏览器会将优化工作保存得比之前更久。所以最佳实践是使用完后及时清除。
 3. 如果你的页面在性能方面没什么问题，则不要添加 will-change 属性来榨取一丁点的速度。will-change 的设计初衷是作为最后的优化手段，用来尝试解决现有的性能问题，它不应该被用来预防性能问题。
+
+### px em rem vh,vw
+
+- px
+绝对单位，页面按精确像素展示
+- em
+相对单位，基准点为父节点字体大小，如果自身定义了font-size按自身计算，整个页面内1em不是一个固定值
+- rem
+相对单位，可以理解为root em，相对根节点html字体大小来计算
+- vh，vw
+主要用于页面视口大小布局
+
+### flex
+
+#### 容器属性
+- flex-direction
+控制主轴排列方向(row | row-reverse | column | column-reverse)
+- flex-wrap
+控制换行(nowrap | wrap | wrap-reverse)
+- flex-flow
+flex-direction属性和flex-wrap属性的简写形式
+- justify-content
+主轴对齐方式
+- align-items
+交叉轴对齐方式
+- align-content
+多根主轴对其方式，如果只有一根，则不起作用
+
+#### 容器成员属性
+- order
+排序，数值越小越靠前，默认0
+- flex-grow
+容器不换行时，容器不够分，放大比例。默认0，存在剩余空间也不放大
+- flex-shrink
+缩放比例，默认1，空间不足将缩小
+- flex-basis
+设置元素在主轴上初始尺寸，所谓的初始尺寸就是元素在flex-grow和flex-shrink生效前的尺寸，优先级比width、height小。默认auto
+- flex
+flex-grow flex-shrink flex-basis 缩写
+flex: 1 = flex: 1 1 0%
+flex: 2 = flex: 2 1 0%
+flex: auto = flex: 1 1 auto
+flex: none = flex: 0 0 auto，常用于固定尺寸不伸缩
+
+flex:1 和 flex:auto 的区别，可以归结于flex-basis:0和flex-basis:auto的区别
+
+当设置为0时（绝对弹性元素），此时相当于告诉flex-grow和flex-shrink在伸缩的时候不需要考虑我的尺寸
+
+当设置为auto时（相对弹性元素），此时则需要在伸缩时将元素尺寸纳入考虑
+
+- align-self
+允许单个项目有与其他项目不一样的对齐方式，可覆盖align-items属性
+
+
+### 实现等比例并排布局
+- float + 百分比
+- 行内块级元素 + 百分比
+- flex 1
+- grid grid-template-columns: 25% 25% 25% 25%;

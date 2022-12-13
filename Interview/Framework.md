@@ -25,11 +25,11 @@
 虚拟dom是对DOM的抽象，本质上是Javascript对象，这个对象对DOM信息和结构的描述
 原理：
 通过遍历模板字符串，根据模板编码规则解析成AST树，从AST生成渲染函数，渲染函数会返回虚拟dom（Vue）
-由babel解析jsx成React.createElement函数，函数会返回虚拟Don（React）
+由babel解析jsx成React.createElement函数，函数会返回虚拟Dom（React）
 优点：
 1. 在生成真实dom之前，可以对新旧vnode做diff算法，以及批处理，减少浏览器的重绘重排
 2. 简化开发，使用函数式编程，避免复杂的dom操作（Fn(state) = UI）
-3. 有利于跨平台，不仅可以渲染web dom，还可以生成IOS，安卓个平台dom
+3. 有利于跨平台，不仅可以渲染web dom，还可以生成IOS，安卓等平台dom
 缺点：
 1. 在渲染dom前，虚拟dom都需要做比较，这个比较是看节点数量以及变化程度，这里可能会使拖垮它的性能。
 2. 单从创建dom速度是要比原生慢，毕竟它最终仍然使用的是原生API来更新dom，所以第一次挂载dom是一定会比原生慢的。
@@ -53,7 +53,7 @@ React：
 **为什么React不能使用双端比较**
 因为Fiber是单向链表结构，这样可以很快的找到fiber节点第一个子节点，下一个兄弟节点，以及父节点，却不容易知道它的前一个Fiber节点是谁。
 **为什么Vue不使用时间分片**
-时间分片也是有代价的，它需要自己实现一个调度器，然后在调度的过程中切换也会由损耗，并且fiber结构不利于双端比较。Vue触发render更新是通过render watcher来通知的，是再el挂载的时候注册了render watcher，它对template中所用到的data属性进行了依赖收集，所以只有在tempalte用到的响应式数据发生了变化才会触发订阅通知，因此Vue对diff的比较频率天生要比React少且有效，所以使用时间分片的意义不大。
+时间分片也是有代价的，它需要自己实现一个调度器，然后在调度的过程中切换也会由损耗，并且fiber结构不利于双端比较。Vue触发render更新是通过render watcher来通知的，是在el挂载的时候注册了render watcher，它对template中所用到的data属性进行了依赖收集，所以只有在tempalte用到的响应式数据发生了变化才会触发订阅通知，因此Vue对diff的比较频率天生要比React少且有效，所以使用时间分片的意义不大。
 **如何理解Fiber时间分片**
 主动让出机制，React向浏览器申请时间片，浏览器在空闲的时候会根据任务优先级继续执行JS，当浏览器有任务的时候，JS中断，交还执行权给浏览器，让浏览器渲染始终保持流畅
 如何实现：利用MessageChannel模拟将回调延迟到渲染操作之后执行。
@@ -228,13 +228,19 @@ template在el挂载后会通过parse解析成render函数，render接受createEl
 8. setState会创建一个新的wipRoot,并将nextUnitOfWork = wipRoot,等到浏览器让出控制权将会进入协调阶段并更新页面
 ### redux原理
 
-核心：Store存储state数据集合 action改变state的指令 Reducer接受action来改变store状态
+核心：Store存储state数据集合 action改变state的指令 Reducer接受action来改变state状态
 通过createStore创建一个store，其中：
 1. store.subscribe：订阅state的变化，当state变化的时候执行回调，可以有多个subscribe，里面的回调会依次执行
 2. store.dispatch：触发action的方法，每次dispatch(action)都会执行reducer生成新的state，然后执行subscribe注册的回调
 3. store.getState：返回当前state
 这是一个发布订阅模式(subscribe订阅消息，createStore存储了一个订阅数组，当dispatch执行，触发所有订阅消息执行)
+#### react-redux connect如何实现的
+高阶组件，context注入store，subscribe订阅store数据变化
 
+#### redux-thunk vs redux-saga
+时机不同
+1. redux-thunk是等异步任务执行完成后，再调用dispatch，然后去store调用reducer
+2. redux-saga在redux的action基础上，重新开辟了一个async action分支，单独处理异步任务
 #### 为什么 Vuex 的 mutation 和 Redux 的 reducer 中不能做异步操作？
 为了保证状态可预测：
 - 单一数据源state

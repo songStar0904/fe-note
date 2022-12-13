@@ -148,6 +148,23 @@ function arr2Tree(arr) {
   console.log(itemMap)
   return res;
 }
+function arr2Tree (arr) {
+  const map = {}
+  const res = []
+  for (let item of arr) {
+    item.children = []
+    map[item.id] = item
+  }
+  for (let item of arr) {
+    if (item.parentId === 0) {
+      res.push(item)
+    } else {
+      const parent = map[item.parentId]
+      parent.children.push(item)
+    }
+  }
+  return res
+}
 function arr2Tree(arr) {
   // 每个loop是获取当前pid的children
   const loop = (pid) => {
@@ -314,6 +331,62 @@ trans(100010001)// 一亿零一万零一
 trans(7002930193000)
 trans(10000001)
 trans(1000000000000)
+```
+```js
+function transformChar (str) {
+  const numChar = {
+    '零': 0,
+    '一': 1,
+    '二': 2,
+    '三': 3,
+    '四': 4,
+    '五': 5,
+    '六': 6,
+    '七': 7,
+    '八': 8,
+    '九': 9
+  }
+  const unitsChar = {
+    '十': { value: 10, secUnit: false },
+    '百': { value: 100, secUnit: false },
+    '千': { value: 1000, secUnit: false },
+    '万': { value: 10000, secUnit: true },
+    '亿': {value: 100000000, secUnit: true},
+  }
+  const arr = str.split('')
+  const n = arr.length
+  const numKeys = Object.keys(numChar), unitKeys = Object.keys(unitsChar)
+  let res = 0, sec = 0, num = 0, hasWan = false
+  for (let i = 0; i < n; i++) {
+    const k = arr[i]
+    if (numKeys.includes(k)) {
+      num = numChar[k]
+      if (i === n - 1) {
+        sec += num
+      }
+    } else if (unitKeys.includes(k)) {
+      const { value, secUnit } = unitsChar[k]
+      if (secUnit) {
+        if (k === '万') hasWan = true
+        // 亿前面有万，res * 一亿
+        if (hasWan && k === '亿') res = res * value
+        sec = (num + sec) * value
+        res += sec
+        sec = 0
+      } else {
+        // 第一个是十，省略十前面的一
+        if (i === 0 && k === '十' && num === 0) {
+          num = 1
+        }
+        sec += num * value
+      }
+      num = 0
+    }
+  }
+  return res + sec
+}
+transformChar('一十二亿三千零九十六万三千八百九十七')
+transformChar('一万零一十亿')
 ```
 
 ### 给几个数组，可以通过数组找到对应的数组名称
@@ -1384,4 +1457,167 @@ function number2ExcelName (n) {
 number2ExcelName(27) // AA
 number2ExcelName(28) // AB
 number2ExcelName(19010) // ABCD
+```
+
+## 1. 实现 Array.prototype.reduce
+
+
+
+
+
+/*
+  2. 问题：实现parse方法， 从对像中取值替换对应标记;
+*/
+```js
+const data = { brand: 'Apple', model:'iPhone10,1', price: 1234 };
+const tpl = '$model$, 应为$brand$手机，预估价格$price$';
+
+function parse(tpl, data) {
+  const match = tpl.match(/(\$\w+\$)/g)
+  for (let key of match) {
+    tpl = tpl.replace(key, data[key.slice(1, -1)] || '')
+  }
+	return tpl;   // iPhone10,1 应为Apple手机，预估价格1234
+}
+```
+
+// 输出对象路径值
+```js
+function getPath (obj) {
+  function dfs (obj, path) {
+    for (let [key, value] of Object.entries(obj)) {
+      let innerPath = `${path}${key}`
+      if (typeof value !== 'object' || obj === null) {
+        console.log(innerPath, '=', value)
+      } else {
+        dfs(value, `${innerPath}.`)
+      }
+    }
+  }
+  dfs(obj, '')
+}
+
+getPath({
+  a: 1,
+  b: {
+    c: 11
+  },
+  d: [2, {x: 2}]
+}) //
+```
+
+// 输出括号匹配
+```js
+function fn (str) {
+  const stack = []
+  let res = []
+  for (let s of str) {
+    if (s === ')') {
+      let a = ''
+      let k = stack.pop()
+      while (k !== '(') {
+        if (stack.length === 0) {
+          throw Error('format err')
+        }
+        a += k
+        k = stack.pop()
+      }
+      res.push(a)
+      stack.push(`(${a})`)
+    } else if (stack.length || s === '(') {
+      stack.push(s)
+    }
+  }
+  if (stack.some(k => k === '(')) {
+    throw Error('format err')
+  }
+  return res
+}
+
+fn('((a+b)+(a-b))-(axc)-d') // ['(a+b)+(a-b)', 'a+b', 'a-b', 'axc']
+fn('(()') // 报错
+```
+
+// 获取url参数
+```js
+function getQueryObj (url) {
+  let res = {}
+  const reg = /([^&?=]+)=([^&?=]*)/g
+  url.replace(reg, (_, $1, $2) => {
+    res[decodeURIComponent($1)] = decodeURIComponent($2)
+  })
+  return res
+}
+
+getQueryObj('https://www.baidu.com?a=1&b=2')
+```
+
+/**
+ * 给定一个字符串 s ，找出 至多 包含两个不同字符的最长子串 t ，并返回该子串的长度。
+ * 示例 1:
+输入: “eceba”
+输出: 3
+解释: t 是 “ece”，长度为3。
+
+示例 2:
+输入: “ccaabbb”
+输出: 5
+解释: t 是 “aabbb”，长度为5。
+ */
+```js
+function getMaxNum (str) {
+  const n = str.length
+  if (n <= 2) return n
+  const map = new Map()
+  let count = 0, l = 0, r = 0
+  while (r < n) {
+    const key = str[r]
+    map.set(key, map.has(key) ? map.get(key) + 1 : 1)
+    if (map.size >= 2) {
+      if (map.size === 2) {
+        count = Math.max(count, r - l + 1)
+      }
+      while (map.size === 3) {
+        let lKey = str[l]
+        if (map.get(lKey) > 1) {
+          map.set(lKey, map.get(lKey) - 1)
+        } else {
+          map.delete(lKey)
+        }
+        l++
+      }
+    }
+    r++
+  }
+  return count
+}
+getMaxNum('eceba')
+getMaxNum('ccaabbb')
+```
+
+/**
+ * 给定一个字符串，全由0或1组成，如果把这个字符串分成左右两拨，左边的0与右边的1数量相加最大，写出实现过程。
+如，000111，则分为000，111最优，左边的0是3个，右边的1是3个，所以最大值为6。如果分为00，0111，则左边0是2，右边1是3，相加是5，还没有6大。
+ */
+```js
+function getMaxSum (str) {
+  function getNum (str, num) {
+    let count = 0
+    for (let s of str) {
+      if (s === num) count++
+    }
+    return count
+  } 
+  const n = str.length
+  let max = 0
+  for (let i = 0; i < n; i++) {
+    const left = str.slice(0, i)
+    const right = str.slice(i)
+    const hasZero = getNum(left, '0')
+    const hasOne = getNum(right, '1')
+    max = Math.max(max, hasZero + hasOne)
+  }
+  return max
+}
+getMaxSum('000111')
 ```

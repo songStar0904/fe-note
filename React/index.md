@@ -583,7 +583,7 @@ lastPlacedIndex = 2
 key === d 在oldFiber中存在
 oldIndex 3 > lastPlacedIndex 2
 所以d节点位置不变
-lastPlacedIndex = 4
+lastPlacedIndex = 3
 
 继续遍历剩余newChildren
 
@@ -606,7 +606,7 @@ oldIndex 1 < lastPlacedIndex 3
 - 在处理老节点都需要把节点处理Key-Value的map数据结构，方便再往后对比中可以快速通过节点的key取到对应的节点。它们都对列表的key有要求。都是通过key做判断标准
 不同点：
 - React优先处理左边部分，左边处理不了在处理复杂部分，Vue2先进行首首，尾尾，首尾，尾首部分处理，然后在进行中间复杂部分处理。Vue3则先处理首尾部分，在处理中间部分。Vue3和Vue2最大的区别是在处理中间复杂部分使用了最长递增子序列算法找出稳定序列。
-- Vue2和Vue3对比和更新是同步进行的，这和React15是相同的。如果发现了节点需要移动或者更新删除，是立即执行。React16以后Diff是可以中断的，Fidd和任务调度都是在内存中进行的，所以即便重点了，用户也不会知道。
+- Vue2和Vue3对比和更新是同步进行的，这和React15是相同的。如果发现了节点需要移动或者更新删除，是立即执行。React16以后Diff是可以中断的，Fiber和任务调度都是在内存中进行的，所以即便重点了，用户也不会知道。
 - Vue使用双端对比算法，而 React 的 Fiber 由于是单向链表的结构，所以在 React 不设置由右向左的链表之前，都无法实现双端对比。
 
 ### 为什么Vue中不需要使用Fiber or 时间切片

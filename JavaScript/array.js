@@ -3,7 +3,7 @@
 // map
 Array.prototype.myMap = function (cb, context = window) {
   if (typeof cb === 'function') {
-    return Error('callback is must be function')
+    throw TypeError('callback is not a function')
   }
   let arr = this
   let res = []
@@ -16,7 +16,7 @@ Array.prototype.myMap = function (cb, context = window) {
 // filter
 Array.prototype.myFilter = function (cb, context = window) {
   if (typeof cb === 'function') {
-    return Error('callback is must be function')
+    throw TypeError('callback is not a function')
   }
   let arr = this
   let res = []
@@ -31,7 +31,7 @@ Array.prototype.myFilter = function (cb, context = window) {
 // every
 Array.prototype.myEvery = function (cb, context = window) {
   if (typeof cb === 'function') {
-    return Error('callback is must be function')
+    throw TypeError('callback is not a function')
   }
   let arr = this
   let res = true
@@ -47,7 +47,7 @@ Array.prototype.myEvery = function (cb, context = window) {
 // some
 Array.prototype.mySome = function (cb, context = window) {
   if (typeof cb === 'function') {
-    return Error('callback is must be function')
+    throw TypeError('callback is not a function')
   }
   let arr = this
   let res = false
@@ -63,11 +63,15 @@ Array.prototype.mySome = function (cb, context = window) {
 // reduce
 Array.prototype.myReduce = function (cb, initValue) {
   if (typeof cb !== 'function') {
-    return Error('callback is must be function')
+    throw TypeError('callback is not a function')
   }
   let arr = this
   let res = initValue
-  for (let i = 0; i < arr.length; i++) {
+  const n = arr.length
+  if (n === 0 && res === undefined) {
+    throw new TypeError('Reduce of empty array with no initial value')
+  }
+  for (let i = 0; i < n; i++) {
     if (typeof res === 'undefined') {
       res = arr[0]
     } else {
@@ -80,7 +84,7 @@ Array.prototype.myReduce = function (cb, initValue) {
 // find context 默认undefined 是es6 严格模式？
 Array.prototype.myFind = function (cb, context = undefined) {
   if (typeof cb === 'function') {
-    return Error('callback is must be function')
+    throw TypeError('callback is not a function')
   }
   let arr = this
   let res = undefined
