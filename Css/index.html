@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS</title>
+</head>
+<style>
+  .bfcWrap {
+    overflow: hidden;
+    margin: 20px;
+  }
+  .box{
+    width: 50px;
+    height: 50px;
+    margin: 50px;
+    background-color: aqua;
+    float: left;
+  }
+  .body {
+        width: 300px;
+        position: relative;
+    }
+ 
+    .aside {
+        width: 100px;
+        height: 150px;
+        float: left;
+        background: #f66;
+    }
+ 
+    .main {
+        height: 200px;
+        background: #fcc;
+    }
+    .flex{
+      display: flex;
+    }
+    .flexBox{
+      flex: 1;
+    }
+    .normalBox{
+      width: 200px;
+      height: 20px;
+      background: #fcc;
+    }
+    .grid{
+      display: grid;
+      grid-template-columns: 25% 25% 25% 25%;
+    }
+    .grid>.gridBox{
+      height: 200px;
+      border: 1px solid #000;
+    }
+</style>
+<body>
+  <h1>BFC</h1>
+  <div class="bfcWrap">
+    <div class="box"></div>
+    <div class="box"></div>
+  </div>
+  <div class="body">
+    <div class="aside"></div>
+    <div class="main"></div>
+    <div class="main"></div>
+  </div>
+  <h1>flex</h1>
+  <div class="flex">
+    <div class="flexBox"></div>
+    <div class="normalBox"></div>
+  </div>
+  <h1>grid</h1>
+  <div class="grid">
+    <div class="gridBox"></div>
+    <div class="gridBox"></div>
+    <div class="gridBox"></div>
+    <div class="gridBox"></div>
+  </div>
+</body>
+</html>

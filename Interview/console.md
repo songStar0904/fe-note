@@ -51,9 +51,9 @@ new Promise(function (resolve) {
 });
 // 1
 // 2
-// 3
 // 4
 // 5
+// 6
 // 3
 ```
 
@@ -94,7 +94,7 @@ var b = a;
 a.x = a = {n: 2};
 
 console.log(a.x) 	// undefined a = {n: 2}
-console.log(b.x) // {n: 1} b = {x: {n:2}, n: 1}
+console.log(b.x) // {n: 2} b = {x: {n:2}, n: 1}
 ```
 这里.会先执行，当前a.x中的a和b引用的同一个地址，然后执行a={n:2}此时a重新赋值得到新对象，最后a.x=a这个时候a.x还是指向老对象，也就是b，所以b={n:1,x:{n:2}}
 
@@ -178,7 +178,7 @@ onload finish
 1. 解析html结构
 2. 加载外部js脚本和样式表文件（预扫描）
 3. 解析并执行js脚本
-4. dom树构建完成-html解析完毕（完成后触发onready 即DOMContentLoaded）
+4. dom树构建完成html解析完毕（完成后触发onready 即DOMContentLoaded）
 5. 加载图片等外部文件（完成后触发图片onload）
 6. 页面加载完毕（完成后触发onload）
 
@@ -219,7 +219,7 @@ console.log(a[b]); // b
 var a={}, b={key:'123'}, c={key:'456'};  
 a[b]='b';
 a[c]='c';  
-console.log(a[b]); // c 会将b，c都转字符串
+console.log(a[b]); // c 会将b，c都转字符串[object Object]
 ```
 - 对象的键名只能是字符串和Symbol类型
 - 其他类型的键名会转换成字符串类型
@@ -238,18 +238,18 @@ console.log(webSite.siteUrl); // http://www.baidu.com
 
 ```js
 function Foo() {
-Foo.a = function() {
-console.log(1)
-}
-this.a = function() {
-console.log(2)
-}
+  Foo.a = function() {
+    console.log(1)
+  }
+  this.a = function() {
+    console.log(2)
+  }
 }
 Foo.prototype.a = function() {
-console.log(3)
+  console.log(3)
 }
 Foo.a = function() {
-console.log(4)
+  console.log(4)
 }
 Foo.a();
 let obj = new Foo();
@@ -370,3 +370,19 @@ Promise.reject(2)
 - (3.)toString()
 - (3.).toString()
 - (3)..toString()
+
+```js
+console.log(typeof A) // function
+console.log(typeof B) // undefined
+function A() {
+  return 'A'
+}
+console.log(typeof A()) // string
+console.log(typeof new A()) // object
+const obj = {}
+var B = function() {
+  return obj
+}
+console.log(new B() === obj) // true
+console.log(B() === obj) // true
+```

@@ -116,11 +116,12 @@ Node11以后与浏览器一致
 function *fn() {
   console.log('执行了')
   yield 'hello'
+  console.log('执行了2')
   return 'world'
 }
 var generator = fn() // 不会执行
 generator.next() // 执行了 {value: 'hello', done: false}
-generator.next() // {value: 'world', done: true}
+generator.next() // 执行了2 {value: 'world', done: true}
 generator.next() // {value: undefined, done: true}
 ```
 - async/await 是generate语法糖
@@ -152,6 +153,28 @@ generator.next() // {value: undefined, done: true}
 1. class 内部默认严格模式，默认绑定的this为undefined
 2. ES5实例属性通过call来实现继承的，class通过super来实现继承
 3. class 子类实例可以继承原生构造函数实例的内部属性，ES5不行
+```js
+// ES5
+function Animal() {
+  
+}
+function Dog() {
+  Animal.call()
+}
+Dog.prototype = Object.create(Animal)
+Dog.prototype.constructor = Dog
+Dog.__proto__ === Animal // false
+Dog.__proto__ === Function.prototype // true
+// ES6
+class Animal {}
+class Dog extends Animal {
+  constructor() {
+    super()
+  }
+}
+Dog.__proto__ === Animal // true
+Dog.__proto__ === Function.prototype // false
+```
 4. ES5实质是先创建子类实例对象，然后再将父类的方法添加到this上，ES6实质是先将父类实例对象属性和方法添加到this上（必须先到用super才能使用this），再用子类构造函数修改this
 
 ### Class 静态方法和实例方法区别
@@ -246,7 +269,7 @@ nodejs是基于事件驱动的异步操作架构，內置模块是Events模块�
 - Map的键值是有序的，通过push的顺序进行排序的（可以迭代）
 - object支持JSON.stringify,JSON.parse操作，map不支持
 
- ### set WeakSet map WeakMap
+### set WeakSet map WeakMap
 
 - Set 成员唯一，无序且不重复，可以遍历
 - WeakSet 成员是对象，且弱引用，可以被垃圾回收机制回收（可以用来保存DOM节点，不容易造成内润泄露），不能遍历

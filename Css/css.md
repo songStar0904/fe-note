@@ -152,16 +152,16 @@ flex-direction属性和flex-wrap属性的简写形式
 设置元素在主轴上初始尺寸，所谓的初始尺寸就是元素在flex-grow和flex-shrink生效前的尺寸，优先级比width、height小。默认auto
 - flex
 flex-grow flex-shrink flex-basis 缩写
-flex: 1 = flex: 1 1 0%
+flex: 1 = flex: 1 1 0% 等分布局
 flex: 2 = flex: 2 1 0%
-flex: auto = flex: 1 1 auto
+flex: auto = flex: 1 1 auto 基于内容动态适配的布局
 flex: none = flex: 0 0 auto，常用于固定尺寸不伸缩
 
 flex:1 和 flex:auto 的区别，可以归结于flex-basis:0和flex-basis:auto的区别
 
 当设置为0时（绝对弹性元素），此时相当于告诉flex-grow和flex-shrink在伸缩的时候不需要考虑我的尺寸
 
-当设置为auto时（相对弹性元素），此时则需要在伸缩时将元素尺寸纳入考虑
+当设置为auto时（相对弹性元素），此时则需要在伸缩时将元素尺寸纳入考虑，
 
 - align-self
 允许单个项目有与其他项目不一样的对齐方式，可覆盖align-items属性

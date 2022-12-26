@@ -45,7 +45,7 @@ Vue：
 
 React：
 - 同级比较，优先比较简单场景
-- 第一轮遍历从newChildren于oldFiber去比较
+- 第一轮遍历从newChildren与oldFiber去比较
 - 第二轮先将老节点生成一个key map去找
 - fiber可以中断，当浏览器需要资源时，可以让给浏览器先去执行，当浏览器空闲的时候再继续fiber比较
 - fiber双缓存机制，如果节点一样，将复用原节点，节省内存开销
@@ -96,7 +96,7 @@ methods: {
 
 ### Vue keep-alive的作用是什么？怎么实现的，如何刷新
 
-通过虚拟dom将需要keep-alive的虚拟dom缓存起来，下次dom渲染时再扔回去。再created钩子函数调用时将需要缓存的Vnode节点保存在cache中，再render时，如果VNode的name符合缓存条件（include/exclude），则会从cache中取出缓存的VNode实例进行渲染。max是使用LRU算法来控制最大数量的（LRU访问时间LFU访问次数）详见实现LRU算法
+通过虚拟dom将需要keep-alive的虚拟dom缓存起来，下次dom渲染时使用缓存里的虚拟DOM。在created钩子函数调用时将需要缓存的Vnode节点保存在cache中，在render时，如果VNode的name符合缓存条件（include/exclude），则会从cache中取出缓存的VNode实例进行渲染。max是使用LRU算法来控制最大数量的（LRU访问时间LFU访问次数）详见实现LRU算法
 
 ### Vue怎么解析template的？template会变成什么
 主要做了三件事：
@@ -206,9 +206,32 @@ template在el挂载后会通过parse解析成render函数，render接受createEl
 2. getDerivedStateFromProps在挂载和forceUpdate也会调用
 3. getDerivedStateFromProps返回新的state会重新渲染,返回null不需要重新渲染;shouldComponentUpdate是返回boolean类型,且在getDerivedStateFromProps触发后执行
 - getSnapshotBeforeUpdate
-在最近依次渲染输出前（提交到DOM节点）调用。它使得组件能在发生更改前从DOM中捕获一些信息（滚动位置），此生命周期任何返回值将作为参数传给componentDidUpdate
+在最近一次渲染输出前（提交到DOM节点）调用。它使得组件能在发生更改前从DOM中捕获一些信息（滚动位置），此生命周期任何返回值将作为参数传给componentDidUpdate
 - static getDerivedStateFromError
 在后代组件抛出错误后被调用。它将抛出的错误作为参数，并返回一个值以更新 state
+
+### 执行顺序
+- 初始化
+1. parent.constructor
+2. parent.static getDerivedStateFromProps
+3. parent.render
+4. children.constructor
+5. children.staic getDerivedStateFromProps
+6. children.render
+7. children.componentDidMount
+8. parent.componentDidMount
+
+- 更新
+1. parent.static getDerivedStateFromProps
+2. parent.shouldComponentUpdate
+3. parent.render
+4. children.static getDerivedStateFromProps
+5. children.shouldComponentUpdate
+6. children.render
+7. children.getSnapshotBeforeUpdate
+8. parent.getSnapshotBeforeUpdate
+9. children.componentDidUpdate
+10. parent.componentDidUpdate
 
 ### Vue原理
 1. 编译器将template转换为render函数
@@ -226,8 +249,8 @@ template在el挂载后会通过parse解析成render函数，render接受createEl
 6. reconcileChildren通过旧fiber与新children做diff对比,将effectTag等信息更新到wipFiber上
 7. 更新完wipRoot后,执行commitWork,根据fiber的effectsTag来更新删除创建dom,最终初始化currentRoot wipRoot deletions
 8. setState会创建一个新的wipRoot,并将nextUnitOfWork = wipRoot,等到浏览器让出控制权将会进入协调阶段并更新页面
-### redux原理
 
+### redux原理
 核心：Store存储state数据集合 action改变state的指令 Reducer接受action来改变state状态
 通过createStore创建一个store，其中：
 1. store.subscribe：订阅state的变化，当state变化的时候执行回调，可以有多个subscribe，里面的回调会依次执行
@@ -270,6 +293,16 @@ FancyInput = forwardRef(FancyInput);
 ### 如果return 了一个函数, 传空数组的话是在什么时候执行? 传依赖数组的时候是在什么时候执行?
 传空是在组件销毁前componentWillUnmount执行，传依赖数组是在依赖组件修改时，执行上一个effect对应的清除执行
 
+### useEffect 死循环
+
+### 什么时候用useCallback，useMemo
+这两个API本身有一定的开销，且React官方有说明，重新声明函数对性能无影响，所以不要滥用。
+useMemo
+- 一些值得计算量很大，使用useMemo做缓存，只有依赖变化时才重新计算。
+useCallback
+- 对于需要传递函数给子组件场合，如果不适用useCallback，子组件每次都会重新渲染
+- 在调用节流防抖函数的时候（重新赋值会导致结果错误）
+
 ### hooks解决了什么问题
 1. 组件之间逻辑或者状态复用（共享状态逻辑），旧的实现使用render props 或者高阶组件
 2. 类组件逻辑复杂的组件难以开发与维护，函数组件可以将相关逻辑放在一块，不需要按照生命周期来放至
@@ -291,12 +324,20 @@ React:
 - 由Babel将JSX转换成React.createElement()函数，此函数返回虚拟DOM
 - 再由ReactDOM.render函数将生成好的虚拟DOM渲染到指定容器上，其中采用了批处理，事务等机制，最终转换成真实DOM
 
+### ReactDOM.render vs ReactDOM.createPortal
+- ReactDom.render 在首次调用时，会将容器节点里的所有Dom元素都替换，ReactDom.createPortal向container下插入一个子节点
+- ReactDom.render 会直接渲染成DOM元素，而ReactDom.createPortal则是渲染出React元素，最终还是需要通过ReactDOM.reader渲染成真实DOM
+- ReactDom.render 事件不会冒泡到父组件，因为render容器就是一个root容器，protal会
+- ReactDom.render 的context值始终是初始值，而potail是传入值
+
 ### Vue 如何对数组进行响应式的
 - 重写改变原数组的7个方法（push pop unshift shift sort splice reverse）
 - 对有新增元素的方法的新增值进行依赖收集（push unshift splice）
 - 手动调用notify，触发订阅通知
 
 ### nextTick原理
+异步更新机制的核心是利用了浏览器的异步任务队列来实现的，并做了降级处理（Promise > MutationObserver > setImmediate > setTimeout（宏任务））
+
 响应式数据更新后，会触发dep.notify，通知dep中收集的watcher去执行update方法。 将对应所有watcher放入一个watcher队列中（这里会做去重和排序处理）。
 然后通过nextTick方法将刷新watcher队列的方法（flushSchedulerQueue）放入一个全局callbacks数组中（包含用户nextick回调函数）
 如果此时浏览器异步任务队列没有flushCallbacks函数在执行，则执行timerFunc函数，将flushCallbacks函数放入异步队列中（异步队列方法会降级处理promise mutationobserver setImmidiate setTimeout）。如果异步队列中存在flushCallbacks函数，等待其执行完成后再放入下一个flushCallbacks函数

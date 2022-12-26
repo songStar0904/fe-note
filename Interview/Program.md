@@ -1621,3 +1621,189 @@ function getMaxSum (str) {
 }
 getMaxSum('000111')
 ```
+// 实现超时执行的异步执行器
+```js
+class Scheduler {
+  scheduleTimeout = 0
+  pending = []
+  constructor(scheduleTimeout) {
+      this.scheduleTimeout = scheduleTimeout
+  }
+  timeout() {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          this.runTask()
+          resolve(false)
+        }, this.scheduleTimeout)
+      })
+  }
+  addTask(taskFn) {
+    return new Promise((resolve, reject) => {
+      this.pending.push([fn, resolve, reject])
+      this.runTask()
+    })
+  }
+  runTask () {
+    if (this.pending.length === 0) return 
+    const [fn, resolve, reject] = this.pending.shift()
+    Promise.race([fn(), this.timeout()]).then(resolve, reject)
+  }
+}
+
+function sleep(timeout) {
+  return new Promise(resolve => setTimeout(resolve, timeout));
+}
+
+const scheduler = new Scheduler(500);  // 设置 500ms 的调度超时
+  // 0ms 时执行，100ms 时输出
+scheduler.addTask(() => sleep(100)).then(() => console.log(1));
+
+// 100ms 时执行，1100ms 时输出
+// 这个任务在 500ms 后会超时，开始执行下一个任务，但该任务本身还是在 1100ms 时完成，输出 2
+scheduler.addTask(() => sleep(1000)).then(() => console.log(2));
+
+// 600ms 时执行，800ms 时输出
+scheduler.addTask(() => sleep(200)).then(() => console.log(3));
+
+// 800ms 时执行，1200ms 时输出
+scheduler.addTask(() => sleep(400)).then(() => console.log(4));
+```
+
+
+// 单调栈，就是输入一个数组，输出两个数组，每个数左右最近的最小的数
+```js
+function getStack (arr) {
+  const n = arr.length
+  const leftArr = Array(n).fill(-1), rightArr = Array(n).fill(-1)
+  for (let i = 0; i < n; i++) {
+    const num = arr[i]
+    let next = i + 1, pre = i - 1
+    while (next < n) {
+      if (arr[next] < num) {
+        rightArr[i] = arr[next]
+        break
+      }
+      next = next + 1
+    }
+    while (pre >= 0) {
+      if (arr[pre] < num) {
+        leftArr[i] = arr[pre]
+        break
+      }
+      pre = pre - 1
+    }
+  }
+  return [leftArr, rightArr]
+}
+getStack([3, 5, 2]) // [[-1, 3, -1], [2, 2, -1]]
+```
+// 返回页面所有节点数组
+```js
+function getAllTags () {
+  let set = new Set()
+  const root = document
+  function dfs (nodes) {
+    console.log(nodes)
+    for (let node of nodes) {
+      node.tagName && set.add(node.tagName)
+      node.children.length && dfs(node.children)
+    }
+  }
+  dfs([root])
+  return [...set].map(tag => tag.toLocaleLowerCase())
+}
+getAllTags()
+```
+// 实现一个函数，传入urls数组，尽可能快的返回请求结果
+```js
+function request (url) {
+  return fetch(url).then(res => res.json()).catch(err => err)
+}
+function loadUrls (urls) {
+  const promises = urls.map(url => request(url))
+  Promise.all(promises).then(res => {
+    console.log(res)
+  })
+}
+loadUrls(['https://developer.mozilla.org/api/v1/whoami', 'https://developer.mozilla.org/zh-CN/docs/Web/API/Fetch_API/Using_Fetch/bcd.json', 'https://developer.mozilla.org/api/v1/who'])
+```
+
+// 一个请求队列，不能使用await+for，第一个返回值作为第二个的参数，按顺序输出，自己实现测试用例
+```js
+function fn () {
+  return (val) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(val + 1);
+      }, 1000)
+    });
+  }
+}
+const arrs = [];
+for (let i = 0; i < 3; i++) {
+  arrs.push(fn());
+}
+
+function fn2 (promises) {
+  fn3(promise.pop(), 0);
+  function fn3 (handle, val) {
+    if (!promise) {
+      return;
+    }
+    handle(val).then((res) => {
+      console.log(res);
+      fn3(promises.pop(), val);
+    })
+  }
+}
+
+function fn1 (promises) {
+  promises.reduce((p, fn) => {
+    return p.then((cur) => fn(cur)).then((res) => {
+      console.log(res)
+      return res
+    })
+  }, Promise.resolve(0))
+}
+fn1(arrs)
+```
+
+// 给你一个整数数组 nums 和一个整数 k ，请你返回其中出现频率前 k 高的元素。你可以按 任意顺序 返回答案。
+```js
+function topKFrequent (nums, k) {
+  const map = new Map()
+  for (let num of nums) {
+    map.set(num, map.has(num) ? map.get(num) + 1 : 1)
+  }
+  const entries = [...map.entries()].sort(([k1, v1], [k2, v2]) => v2 - v1)
+  const res = []
+  let pre = -1
+  for (let [n, v] of entries) {
+    if (k === 0) break
+    res.push(n)
+    if (pre !== v) k--
+    pre = v
+  }
+  return res
+}
+
+topKFrequent([1, 1, 1, 2, 2, 3], 2)
+```
+// 给你两个版本号 version1 和 version2 ，请你比较它们。
+```js
+function campareVersion (v1, v2) {
+  const arr1 = v1.split('.'), arr2 = v2.split('.')
+  const len1 = arr1.length, len2 = arr2.length
+  for (let i = 0; i < len1 || i < len2; i++) {
+    let n1 = arr1[i] || 0, n2 = arr2[i] || 0
+    if (n1 > n2) {
+      return 1
+    } else if (n1 < n2){
+      return -1
+    }
+  }
+  return 0
+}
+
+campareVersion('7.5.2', '7.5')
+```

@@ -22,3 +22,11 @@ var foo = function(...args) {
 var f1 = foo(1,2,3); f1.getValue(); // 6 输出是参数的和
 var f2 = foo(1)(2,3); f2.getValue(); // 6
 var f3 = foo(1)(2)(3)(4); f3.getValue(); // 10
+
+
+const cr = function (fn, ...args) {
+  const value = fn(...args)
+  return (...arg1) =>  cr(fn, value, ...arg1)
+}
+add = (a, b) => a + b
+cr(add, 1,2,3)(4,5)(6)

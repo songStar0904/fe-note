@@ -121,10 +121,11 @@ Function.prototype.myBind = function(context = window, ...args){
   }
 }
 ```
+bind之后无法改变this的指向，当执行绑定函数时，this指向与形参在bind方法执行时已经确定了
 
 - 闭包概念，最主要的还是问闭包的场景？
 
-能够使用宁一个函数作用域变量的函数。
+能够使用另一个函数作用域变量的函数。
 场景：回调函数，柯里化，立即执行函数IIFI，函数返回函数
 
 - 用es5实现es6类的继承？各种继承问的挺多的
@@ -564,6 +565,29 @@ history:
 1. pushState 和 repalceState 两个 API 来操作实现 URL 的变化 ；
 2. 我们可以使用 popstate 事件来监听 url 的变化，从而对页面进行跳转（渲染）；
 3. history.pushState() 或 history.replaceState() 不会触发 popstate 事件，这时我们需要手动触发页面跳转（渲染）。
+```js
+// 自定义事件
+const bindHistoryEvent = (type) => {
+  const historyEvent = history[type]
+  return function(...args) {
+    const res = historyEvent.call(this, ...args)
+    const e = new Event(type)
+    e.arguments = args
+    window.dispatchEvent(e)
+    return res
+  }
+}
+// 重写原有方法
+history.pushState = bindHistoryEvent('pushState)
+history.replaceState = bindHistoryEvent('replaceState)
+// 监听事件
+window.addEventListener('pushState', function(e) {
+  // ...
+})
+window.addEventListener('replace', function(e) {
+  // ...
+})
+```
 使用 history 模式时，在对当前的页面进行刷新时，此时浏览器会重新发起请求。如果 nginx 没有匹配得到当前的 url ，就会出现 404 的页面。因此需要通过服务端来允许地址可访问
 
 - key的作用？没有key的情况，vue会怎么做？会引出diff的问题
