@@ -56,6 +56,27 @@ new Promise(function (resolve) {
 // 6
 // 3
 ```
+```js
+const p1 = new Promise((resolve) => {
+  setTimeout(() => {
+    resolve('resolve3');
+    console.log('timer1')
+  }, 0)
+  resolve('resovle1');
+  resolve('resolve2');
+}).then(res => {
+  console.log(res)
+  setTimeout(() => {
+    console.log(p1)
+  }, 1000)
+}).finally(res => {
+  console.log('finally', res)
+})
+// resovle1
+// finally undefined
+// timer1
+// Promise<{status: fulfilled, value: undefined}>
+```
 
 ```js
 var b = 10;
@@ -385,4 +406,16 @@ var B = function() {
 }
 console.log(new B() === obj) // true
 console.log(B() === obj) // true
+```
+
+```js
+class A {}
+class B extends A {}
+const a = new A()
+const b = new B()
+a.__proto__ === A.prototype
+b.__proto__ === B.prototype
+B.__proto__ === A 
+B.prototype.__proto__ === A.prototype
+b.__proto__.__proto__ === A.prototype
 ```

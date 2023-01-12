@@ -13,3 +13,13 @@ const c: A = {
 
 type B = [string, number];
 const b: B = ['1', 1];
+
+// 枚举key遍历
+enum Status {
+  A,
+  B
+}
+
+type k = keyof typeof Status
+
+const s: k = 'A'

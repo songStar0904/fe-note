@@ -141,7 +141,7 @@ generator.next() // {value: undefined, done: true}
 - 客户端接受服务端SYN+ACK报文，向服务器发送ACK报文表示确认，客户端和服务端都设这位ESTABLISHED状态，连接建立
 为什么是三次：TCP 双方都是全双工的。全双工指的是，TCP 任何一端既是发送数据方，又是接收数据方，因此这就要求 TCP 通讯双方既要保证自己具备发送数据的能力，又要保证自己具备接收数据能力
 为什么不是4次：三次可以确认了，四次浪费
-3. 发送http请求（强缓存、协商缓存）
+3. 发送http请求（强缓存、协商缓存）(三级缓存，先找内存，再找磁盘，最后网络请求)
 4. 浏览器渲染
 - 构建DOM树
 - 样式计算
@@ -161,7 +161,7 @@ function Animal() {
 function Dog() {
   Animal.call()
 }
-Dog.prototype = Object.create(Animal)
+Dog.prototype = Object.create(Animal.prototype)
 Dog.prototype.constructor = Dog
 Dog.__proto__ === Animal // false
 Dog.__proto__ === Function.prototype // true

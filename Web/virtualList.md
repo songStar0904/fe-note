@@ -27,7 +27,7 @@ getStartIndex(scrollTop) {
   return idx
 }
 ```
-1. 定高item，startIdx = scrollTop/rowHeight + bufferSize；endIdx = Math.min(startIdx + limit(可视元素数量) + bufferSize, total - 1)
+1. 定高item，startIdx = scrollTop/rowHeight - bufferSize；endIdx = Math.min(startIdx + limit(可视元素数量) + bufferSize, total - 1)
 2. 不定高item 使用二分法去缓存positions里面找到对应idx
 从而获取当前显示的list内容，利用requestAnimationFrame限流，提高性能
 

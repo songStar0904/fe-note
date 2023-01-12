@@ -1807,3 +1807,70 @@ function campareVersion (v1, v2) {
 
 campareVersion('7.5.2', '7.5')
 ```
+
+// 实现 JSON.stringify(obj) ，将对象转成字符串
+
+```js
+function myStringify (obj, hash = new WeakSet()) {
+  if (typeof obj === 'object' && obj !== null) {
+    if (hash.has(obj)) {
+      throw TypeError('Converting circular structure to JSON')
+    }
+    hash.add(obj)
+  }
+  function getType (val) {
+    return Object.prototype.toString.call(val).match(/\s(\w+)]/)[1].toLocaleLowerCase()
+  }
+  const type = getType(obj)
+  if (Number.isNaN(obj) || obj === Infinity || obj === -Infinity || type === 'null') {
+    return 'null'
+  }
+  if (type === 'function' || type === 'undefined' || type === 'symbol') {
+    return undefined
+  }
+  if (type === 'string') {
+    return `"${obj}"`
+  }
+  if (type === 'regexp' || type === 'set' || type === 'map' || type === 'error') {
+    return '{}'
+  }
+  if (type === 'date') {
+    return `"${obj.toJSON()}"`
+  }
+  if (type === 'array') {
+    const arr = obj.map(item => getType(item) === 'undefined' || getType(item) === 'function' || getType(item) === 'symbol' ? 'null' : myStringify(item, hash))
+    return `[${arr.join(',')}]`
+  }
+  if (type === 'object') {
+    const arr = Object.keys(obj).filter(key => getType(obj[key]) !== 'symbol' && getType(obj[key]) !== 'undefined' && getType(obj[key]) !== 'function' && getType(obj[key]) !== 'symbol').map((key) => {
+      return `"${key}":${myStringify(obj[key], hash)}`
+    })
+    return `{${arr.join(',')}}`
+  }
+  return String(obj)
+}
+myStringify({
+  tag: Symbol("student"),
+  money: undefined,
+  girlfriend: null, 
+  fn: function(){},
+  info1: [1,'str',NaN,Infinity,-Infinity,undefined,null,() => {},Symbol()],
+  info2: [new Set(),new Map(),new Error(),/a+b/],
+  info3: {
+      name: 'Chor',
+      age: 20,
+      male: true
+  },
+  info4: {
+      date: new Date(),
+      tag: Symbol(),
+      fn: function(){},
+      un: undefined
+  },
+  info5:{
+      str: new String('abc'),
+      no: new Number(123),
+      bool: new Boolean(false)
+  }    
+})
+```

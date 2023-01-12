@@ -343,3 +343,8 @@ React:
 如果此时浏览器异步任务队列没有flushCallbacks函数在执行，则执行timerFunc函数，将flushCallbacks函数放入异步队列中（异步队列方法会降级处理promise mutationobserver setImmidiate setTimeout）。如果异步队列中存在flushCallbacks函数，等待其执行完成后再放入下一个flushCallbacks函数
 - flushCallbacks：执行当前所有callbacks数组中的flushSchedulerQueue函数
 - flushSchedulerQueue：负责刷新watcher队列，执行queue数组中的watcher.run，从而进行更新阶段
+
+### Vue slot
+- 默认插槽
+- 具名插槽
+- 作用域插槽
