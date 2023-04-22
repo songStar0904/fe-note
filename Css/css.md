@@ -11,24 +11,6 @@ box-sizing: border-box;
 
 ## BFC(Block Formatting Context块级格式化上下文)
 
-特性：
-1. 内部的黑子会在垂直方向上一个接一个放置
-2. 对于同一个BFC的两个相邻的盒子margin会发生重叠，与方向无关
-3. 每个元素的左外边距与包含快的左边界想接触，即使浮动元素也是如此
-4. BFC区域不会与float元素区域重叠
-5. 计算BFC高度时，浮动子元素也参与计算
-6. BFC就是页面上的一个隔离的独立容器，容器里面的子元素不会影响到外面元素，反之亦然
-触发条件：
-1. 根元素
-2. 浮动元素：float不为none
-3. overflow不为visible
-4. display值为inline-block table flex inline-flex等
-5. position为absolute或fixed
-应用场景：
-1. 防止margin 重叠
-2. float 塌陷 计算高度内容
-3. 自适应多栏布局 (BFC的区域不会与float box重叠。因此，可以触发生成一个新的BFC)
-
 ### 特性
 
 1. BFC可以看作一个独立的容器，容器内部元素不会影响区块外部元素。
@@ -40,10 +22,15 @@ box-sizing: border-box;
 ### 创建BFC
 
 1. 根元素
-2. float属性部位none。
+2. float属性不为none。
 3. position属性值为absolute或者fixed。
 4. display为 inline-block，flow-root，table-cell，table-caption以及table相关属性。
 5. overflow属性值不为visible。
+
+### 应用场景
+1. 防止margin 重叠
+2. float 塌陷 计算高度内容
+3. 自适应多栏布局 (BFC的区域不会与float box重叠。因此，可以触发生成一个新的BFC)
 
 ## visibility: hidden 和 display: none 和 opacity: 0 有什么区别
 

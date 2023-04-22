@@ -1842,7 +1842,7 @@ function myStringify (obj, hash = new WeakSet()) {
     return `[${arr.join(',')}]`
   }
   if (type === 'object') {
-    const arr = Object.keys(obj).filter(key => getType(obj[key]) !== 'symbol' && getType(obj[key]) !== 'undefined' && getType(obj[key]) !== 'function' && getType(obj[key]) !== 'symbol').map((key) => {
+    const arr = Object.keys(obj).filter(key => getType(obj[key]) !== 'undefined' && getType(obj[key]) !== 'function' && getType(obj[key]) !== 'symbol').map((key) => {
       return `"${key}":${myStringify(obj[key], hash)}`
     })
     return `{${arr.join(',')}}`
